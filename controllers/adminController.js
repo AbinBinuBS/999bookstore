@@ -373,28 +373,38 @@ const categoryBlock = async(req,res)=>{
 
 const orderManagement = async(req,res)=>{
     try{
-        const orderData =  await Order.find({}).populate('userId')
+        const orderData =  await Order.find({}).populate('userId').sort({currentData:-1})
         res.render('order',{orderData:orderData})
     }catch(error){
         console.log(error.message)
     }
 }
 
-const orderStatus = async(req,res)=>{
-    try{
-        console.log("hai")
+const orderStatus = async (req, res) => {
+    try {
+        const id = req.query.orderId;
+        const selectedOption = req.query.selectedStatus;
+        console.log(id)
+        if (!id || !selectedOption) {
+            return res.status(400).json({ message: 'Missing required parameters' });
+        }
 
-        id=req.query.id
-        console.log("id",id)
-        const selectedOption =req.query.selectedOption
-        console.log("option",selectedOption)
-
+        // Assuming Order is your Mongoose model for orders
         const updateStatus = await Order.findByIdAndUpdate(id, { $set: { Status: selectedOption } });
-        res.redirect('/admin/orderStatus')
-    }catch(error){
-        console.log(error.message)
+
+        if (!updateStatus) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        res.status(200).json({ message: 'Status updated successfully' });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
-}
+};
+
+module.exports = { orderStatus };
+
 
 
 

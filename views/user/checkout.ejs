@@ -514,13 +514,6 @@
                                     <button class="btn primary-btn disabled" disabled>Proceed to Pay</button>
                                 <% } %>
                             </button>
-                            
-                            
-                            
-</button>
-
-                            
-                            
                     </div>
                 </div>
             </div>
@@ -550,36 +543,39 @@
     </script> -->
     
     
+<!-- Add the SweetAlert library -->
+<!-- Include SweetAlert library -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 
 <script>
-let isRequestSent = false;
+    document.getElementById('proceedToPayButton').addEventListener('click', function(event) {
+        const selectedAddressIndex = document.querySelector('input[name="payment"]:checked');
 
-document.getElementById('proceedToPayButton').addEventListener('click', function(event) {
-    // event.preventDefault(); 
-    
-    const selectedAddressIndex = document.querySelector('input[name="payment"]:checked').value;
-    const userId = document.getElementById(`userId${selectedAddressIndex}`).value;
-    const paymentMethod = document.querySelector('input[name="pay"]:checked').value;
-    const totalSumElement = document.getElementById('totalSum');
-    const totalAmount = parseFloat(totalSumElement.textContent);
+        if (!selectedAddressIndex) {
+            Swal.fire({
+                title: 'No Address Selected',
+                text: 'Please select an address to proceed.',
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
 
-    Swal.fire({
-        title: 'Are you sure you want to proceed?',
-        text: `Total amount: $${totalAmount}. Payment method: ${paymentMethod}`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Proceed',
-        cancelButtonText: 'Cancel'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            if (!isRequestSent) {
-                isRequestSent = true;
-                
-                const baseUrl = '/proceedtoPayment';
-                const url = `${baseUrl}?address=${userId}`;
-                
-                fetch(url, {
+        const userId = document.getElementById(`userId${selectedAddressIndex.value}`).value;
+        const paymentMethod = document.querySelector('input[name="pay"]:checked').value;
+        const totalSumElement = document.getElementById('totalSum');
+        const totalAmount = parseFloat(totalSumElement.textContent);
+
+        Swal.fire({
+            title: 'Are you sure you want to proceed?',
+            text: `Total amount: $${totalAmount}. Payment method: ${paymentMethod}`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Proceed',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('/proceedtoPayment', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -591,20 +587,43 @@ document.getElementById('proceedToPayButton').addEventListener('click', function
                     })
                 })
                 .then(response => {
-    console.log('POST request sent successfully');
-    isRequestSent = false;
-    Swal.fire({
-        title: 'Order Placed!',
-        text: 'Your order has been successfully placed.',
-        icon: 'success'
-    }).then(() => {
-        window.location.href = '/account'; // Redirect to the success page
-    });
-})
+                    if (response.ok) {
+                        return response.json(); // Parse response JSON if available
+                    } else {
+                        throw new Error('Failed to place the order. Please try again later.');
+                    }
+                })
+                .then(data => {
+                    // Check if the response contains the success message
+                    if (data && data.message === 'Order placed successfully') {
+                        // Order placed successfully
+                        Swal.fire({
+                            title: 'Order Placed!',
+                            text: 'Your order has been successfully placed.',
+                            icon: 'success'
+                        }).then(() => {
+                            window.location.href = '/account'; // Redirect to the success page
+                        });
+                    } else {
+                        // Handle unexpected response
+                        throw new Error('Unexpected response from the server');
+                    }
+                })
+                .catch(error => {
+                    // Handle fetch error or order placement failure
+                    console.error('Error:', error);
+                    Swal.fire({
+                        title: 'Error',
+                        text: error.message,
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                });
             }
-        }
+        });
     });
-});
+</script>
+
 
 
 </script>

@@ -124,12 +124,15 @@
                 <div class="col-lg-6"> <!-- Increased column width -->
                     <div class="details_item">
                         <h4>Order Info</h4>
+						<%if(orderData){%>
                         <ul class="list">
                             <li><a href="#"><span>Order number</span>: #<%= orderData.orderId %></a></li>
                             <li><a href="#"><span>Date</span> : <%= new Date(orderData.currentData).toLocaleString() %></a></li>
                             <li><a href="#"><span>Total</span> : ₹ <%= orderData.totalAmount %>.00</a></li>
                             <li><a href="#"><span>Payment method</span> : <%= orderData.paymentMethod %></a></li>
                         </ul>
+						<%}else{%>
+							<%}%>
                     </div>
                 </div>
             

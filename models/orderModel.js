@@ -52,7 +52,7 @@ const orderSchema = mongoose.Schema({
     Status:{
         type:String,
         enum:['Processing','Order Placed','Cancelled','Delevierd','Return'],
-        default:'Order Placed'
+        default:'Processing'
         
     },
     currentData:{

@@ -718,8 +718,7 @@ const paymentManagement = async (req,res)=>{
             console.log('Cart is empty or does not exist.');
           }
         const deleteCart = await Cart.deleteOne({ userId: id });
-          res.render('cancelOrder')
-  
+        res.status(200).json({ message: 'Order placed successfully' });
     }catch(error){
         console.log(error)
     }
@@ -803,7 +802,7 @@ const accountManagment = async(req,res)=>{
     try{
         id=req.session.user_id
         const userData = await User.findById({_id:id})
-        const orderData = await Order.find({userId:id})
+        const orderData = await Order.find({userId:id}).sort({currentData:-1})
 
         res.render('Account',{userData:userData,orderData:orderData})
     }catch(error){
@@ -851,29 +850,57 @@ if (orderData) {
     }
 }
 
-const profileEdit = async(req,res)=>{
-    try{
-        id=req.session.user_id
-        console.log("i am here",id)
-        const userData = await User.findOneAndUpdate({_id:id},{$set:{name:req.body.name,email:req.body.email,phone:req.body.phone}}) 
-        res.redirect('/account')
-    }catch(error){
+
+const profileEdit = async (req, res) => {
+    try {
+        const id = req.session.user_id;
+        console.log("I am here", id);
+        const { name, email, phone } = req.query; 
+        console.log("Name:", name, "Email:", email, "Phone:", phone);
+        const existEmail = await User.findOne({ _id: { $ne: id }, email: email });
+        if(!existEmail){
+            const existMobile = await User.findOne({_id:{$ne:id},phone:phone})
+            if(!existMobile){
+                const userData = await User.findOneAndUpdate(
+                    { _id: id },
+                    { $set: { name: name, email: email, phone: phone } },
+                    { new: true } 
+                );
+                console.log("i am in true part");
+                res.redirect('/account');
+            }else{
+                let Phone = "Phone number already exists...!"
+            return res.status(400).json(Phone);
+            }
+            
+        }else{
+            const Email = "Email already exists...!"
+            return res.status(400).json(Email);
+        }
+        
+    } catch (error) {
         console.log(error.message);
+        res.status(500).send('Internal Server Error'); 
     }
-}
+};
 
 
 const changePassword = async(req,res)=>{
     try{
         id = req.session.user_id
-        const oldPassword = req.body.currentPassword;
-        const newPassword = req.body.newPassword
+        const oldPassword = req.query.currentPassword;
+        const newPassword = req.query.newPassword
+        console.log('i am here',oldPassword)
         const userData = await User.findById({_id:id})
         const passwordMatch = await bcrypt.compare(oldPassword,userData.password)
         if(passwordMatch){
             const spassword = await securePassword(newPassword)
             const changePassword =await User.findOneAndUpdate({_id:id},{$set:{password:spassword}}) 
             res.redirect('/account')
+        }else{
+            console.log("i am at else part")
+            return res.status(400).json({message:"Password is not matching...!"});
+
         }
         
         console.log("hai",userData)

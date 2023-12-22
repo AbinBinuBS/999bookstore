@@ -1,7 +1,8 @@
 const express=require('express')
 const app=express()
+require("dotenv").config();
 const mongoose=require('mongoose')
-mongoose.connect('mongodb://127.0.0.1:27017/999books')
+mongoose.connect(process.env.MONGO_URL)
 const nocache = require('nocache')
 
 app.use(nocache())
@@ -9,6 +10,8 @@ app.use(nocache())
 app.use(express.json())
 app.use(express.static('public'));
 
+
+PORT = process.env.PORT || 4000
 
 // =============user route==============
 
@@ -27,6 +30,6 @@ app.use('/admin',adminRoute)
 
 
 
-app.listen(3000,()=>{
+app.listen(PORT,()=>{
     console.log("server is running at port 3000.....")
 })

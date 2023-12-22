@@ -347,20 +347,19 @@
                                                         <div class="row">
                                                             <div class="form-group col-md-6">
                                                                 <label>First Name <span class="required">*</span></label>
-                                                                <input required="" class="form-control square" value="<%=userData.name%>" name="name" type="text">
+                                                                <input class="form-control square" value="<%=userData.name%>" name="name" type="text">
                                                             </div>
                                                             <div class="form-group col-md-6">
                                                                 <label>Email <span class="required">*</span></label>
-                                                                <input required="" type="email" value="<%=userData.email%>" class="form-control square" name="email">
+                                                                <input  type="email" value="<%=userData.email%>" class="form-control square" name="email">
                                                             </div>
                                                             <div class="form-group col-md-12">
                                                                 <label>Phone Number <span class="required">*</span></label>
                                                                 <input value="<%=userData.phone%>" name="phone" type="text">
                                                             </div>
                                                             <div class="col-md-12">
-                                                                <button type="submit" class="btn btn-fill-out submit" name="submit" value="Submit">Save</button>
-                                                                <button class="btn btn-fill-out submit" type="button" name="changePassword" id="changePasswordBtn">Change Password</button>
-                                                            </div>
+                                                                <button type="submit" class="btn btn-fill-out submit" name="submit" value="Submit" style="background-color: orange; border: none;">Save</button>
+                                                                <button class="btn btn-fill-out submit" type="button" name="changePassword" id="changePasswordBtn" style="background-color: orange; border: none;">Change Password</button>                                                                                                                            </div>
                                                         </div>
                                                     </form>
                                                 </div>
@@ -370,85 +369,140 @@
                                             <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
                                             
                                             <script>
-                                                document.getElementById('profileForm').addEventListener('submit', function(event) {
-                                                    event.preventDefault(); // Prevent the default form submission
-                                            
-                                                    // Get form data
-                                                    const formData = new FormData(this);
-                                            
-                                                    // Send data using Fetch
-                                                    fetch('/editProfile', {
-                                                        method: 'POST',
-                                                        body: formData
-                                                    })
-                                                    .then(response => {
-                                                        // Handle the response here
-                                                        if (response.ok) {
-                                                            // If the request was successful, show a success message
-                                                            Swal.fire({
-                                                                title: 'Changes Saved!',
-                                                                icon: 'success',
-                                                                showCancelButton: false,
-                                                                confirmButtonColor: '#3085d6',
-                                                                confirmButtonText: 'OK'
-                                                            }).then((result) => {
-                                                                if (result.isConfirmed) {
-                                                                    // Optional: Redirect or perform other actions after success
-                                                                }
-                                                            });
-                                                        } else {
-                                                            // If there was an error, handle it here
-                                                            // Display an error message or take appropriate action
-                                                        }
-                                                    })
-                                                    .catch(error => {
-                                                        // Handle fetch error
-                                                        console.error('Error:', error);
-                                                        // Display or handle the error as needed
-                                                    });
-                                                });
+  document.getElementById('profileForm').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent the default form submission
+
+    // Function to create error message elements
+    const createErrorMessage = (field, message) => {
+        const errorMessage = document.createElement('span');
+        errorMessage.classList.add('error-message');
+        errorMessage.style.color = 'red';
+        errorMessage.textContent = message;
+        
+        // Insert error message after the field
+        field.parentNode.insertBefore(errorMessage, field.nextSibling);
+    };
+
+    // Function to remove error message elements
+    const removeErrorMessages = () => {
+        const errorMessages = document.querySelectorAll('.error-message');
+        errorMessages.forEach(errorMessage => errorMessage.remove());
+    };
+
+    // Validation logic
+    const nameField = document.querySelector('input[name="name"]');
+    const emailField = document.querySelector('input[name="email"]');
+    const phoneField = document.querySelector('input[name="phone"]');
+    let isValid = true;
+
+    removeErrorMessages(); // Clear previous error messages
+
+    // Name validation: Should not be a number
+    if (!isNaN(nameField.value.trim())) {
+        createErrorMessage(nameField, 'Name should not be a number');
+        isValid = false;
+    }
+
+    // Email validation: Using a simple regular expression for basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailField.value.trim())) {
+        createErrorMessage(emailField, 'Enter a valid email address');
+        isValid = false;
+    }
+
+    // Phone validation: Should be 10 numbers
+    if (phoneField.value.trim().length !== 10 || isNaN(phoneField.value.trim())) {
+        createErrorMessage(phoneField, 'Phone number should be 10 digits');
+        isValid = false;
+    }
+
+    // If form is valid, proceed with submitting the form
+    if (isValid) {
+        const name = nameField.value.trim();
+        const email = emailField.value.trim();
+        const phone = phoneField.value.trim();
+
+        const url = `/editProfile?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone)}`;
+
+        fetch(url, {
+            method: 'GET',
+        })
+        .then(response => {
+            if (response.ok) {
+                Swal.fire({
+                    title: 'Changes Saved!',
+                    icon: 'success',
+                    showCancelButton: false,
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Optionally perform any action after successful submission
+                    }
+                });
+            } else if (response.status === 400) {
+                response.text().then(errorMessage => {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: errorMessage, // Display the error message from the response
+                        icon: 'error',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
+                });
+            } else {
+                // Handle other error statuses if needed
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+});
+
                                             </script>
                                             
-                                       <div class="modal" id="changePasswordModal">
-                                        <div class="modal-dialog">
-                                          <div class="modal-content">
-                                            <form action="/changePassword" method="post" id="changePasswordForm">
-                                              <div class="modal-header">
-                                                <h4 class="modal-title">Change Password</h4>
-                                              </div>
-                                              <div class="modal-body">
-                                                <div class="row">
-                                                  <div class="col-sm-12">
-                                                    <div class="form-group">
-                                                      <label for="currentPassword">Current Password <span class="required">*</span></label>
-                                                      <input  class="form-control square" name="currentPassword" id="currentPassword" type="password">
-                                                      <div id="currentPasswordError" class="error-message text-danger"></div>
+                                            <div class="modal" id="changePasswordModal">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <form action="/changePassword" method="post" id="changePasswordForm">
+                                                            <div class="modal-header">
+                                                                <h4 class="modal-title">Change Password</h4>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <div class="row">
+                                                                    <div class="col-sm-12">
+                                                                        <div class="form-group">
+                                                                            <label for="currentPassword">Current Password <span class="required">*</span></label>
+                                                                            <input class="form-control square" name="currentPassword" id="currentPassword" type="password" >
+                                                                            <div id="currentPasswordError" class="error-message text-danger"></div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-sm-12">
+                                                                        <div class="form-group">
+                                                                            <label for="newPassword">New Password <span class="required">*</span></label>
+                                                                            <input class="form-control square" name="newPassword" id="newPassword" type="password" >
+                                                                            <div id="newPasswordError" class="error-message text-danger"></div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-sm-12">
+                                                                        <div class="form-group">
+                                                                            <label for="confirmPassword">Confirm Password <span class="required">*</span></label>
+                                                                            <input class="form-control square" name="confirmPassword" id="confirmPassword" type="password" >
+                                                                            <div id="confirmPasswordError" class="error-message text-danger"></div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="submit" class="btn btn-primary">Submit</button>
+                                                                <button type="button" class="btn btn-secondary" id="closeModalBtn">Close</button>
+                                                            </div>
+                                                        </form>
                                                     </div>
-                                                  </div>
-                                                  <div class="col-sm-12">
-                                                    <div class="form-group">
-                                                      <label for="newPassword">New Password <span class="required">*</span></label>
-                                                      <input  class="form-control square" name="newPassword" id="newPassword" type="password">
-                                                      <div id="newPasswordError" class="error-message text-danger"></div>
-                                                    </div>
-                                                  </div>
-                                                  <div class="col-sm-12">
-                                                    <div class="form-group">
-                                                      <label for="confirmPassword">Confirm Password <span class="required">*</span></label>
-                                                      <input  class="form-control square" name="confirmPassword" id="confirmPassword" type="password">
-                                                      <div id="confirmPasswordError" class="error-message text-danger"></div>
-                                                    </div>
-                                                  </div>
                                                 </div>
-                                              </div>
-                                              <div class="modal-footer">
-                                                <button type="submit" class="btn btn-primary">Submit</button>
-                                                <button type="button" class="btn btn-secondary" id="closeModalBtn">Close</button>
-                                              </div>
-                                            </form>
-                                          </div>
-                                        </div>
-                                      </div>
+                                            </div>
+                                            
                                       
                                       
                                           
@@ -472,62 +526,95 @@
                                               $('#changePasswordModal').modal('hide');
                                             });
                                           </script>
-                                          <script>
-                                            
-                                            function displayMessage(id, message, isError = true) {
-                                              const messageElement = $(`#${id}Error`);
-                                              messageElement.text(message); // Update the message div
-                                          
-                                              // Check if it's an error message from the backend or a validation error
-                                              if (isError) {
-                                                messageElement.addClass('text-danger'); // Apply red color for error messages
-                                              } else {
-                                                messageElement.removeClass('text-danger'); // Remove red color for non-error messages
-                                              }
-                                            }
-                                          
-                                            $(document).ready(function() {
-                                              $('#changePasswordForm').on('submit', function(event) {
-                                                // Reset previous error messages
-                                                $('.error-message').text('');
-                                          
-                                                const currentPassword = $('#currentPassword').val();
-                                                const newPassword = $('#newPassword').val();
-                                                const confirmPassword = $('#confirmPassword').val();
-                                          
-                                                if (currentPassword.length < 8) {
-                                                  displayMessage('currentPassword', 'Current password should contain a minimum of 8 characters');
-                                                  event.preventDefault(); // Prevent form submission
-                                                }
-                                          
-                                                if (newPassword.length < 8) {
-                                                  displayMessage('newPassword', 'New password should contain a minimum of 8 characters');
-                                                  event.preventDefault(); // Prevent form submission
-                                                }
-                                          
-                                                if (confirmPassword.length < 8) {
-                                                  displayMessage('confirmPassword', 'Confirm password should contain a minimum of 8 characters');
-                                                  event.preventDefault(); // Prevent form submission
-                                                }
-                                          
-                                                if (newPassword !== confirmPassword) {
-                                                  displayMessage('confirmPassword', 'New password and confirm password do not match');
-                                                  event.preventDefault(); // Prevent form submission
-                                                }
-                                          
-                                                // Assume a message from the backend with a status code
-                                                const backendMessage = {
-                                                  statusCode: 400, // Example status code
-                                                  message: 'Current password is incorrect', // Example backend message
-                                                };
-                                          
-                                                // Check backend message status code and show below the current password field
-                                                if (backendMessage.statusCode === 400) {
-                                                  displayMessage('currentPassword', backendMessage.message);
-                                                }
-                                              });
-                                            });
-                                          </script>
+                                         <script>
+    document.getElementById('changePasswordForm').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent the default form submission
+
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    const errorColor = 'red';
+    const errorMessageStyle = `color: ${errorColor};`;
+
+    const currentPasswordError = document.getElementById('currentPasswordError');
+    const newPasswordError = document.getElementById('newPasswordError');
+    const confirmPasswordError = document.getElementById('confirmPasswordError');
+
+    currentPasswordError.textContent = '';
+    newPasswordError.textContent = '';
+    confirmPasswordError.textContent = '';
+
+    let isValid = true;
+
+    if (currentPassword.length < 8) {
+        currentPasswordError.textContent = 'Current password should be at least 8 characters';
+        currentPasswordError.style = errorMessageStyle;
+        isValid = false;
+    }
+
+    if (newPassword.length < 8) {
+        newPasswordError.textContent = 'New password should be at least 8 characters';
+        newPasswordError.style = errorMessageStyle;
+        isValid = false;
+    }
+
+    if (confirmPassword.length < 8) {
+        confirmPasswordError.textContent = 'Confirm password should be at least 8 characters';
+        confirmPasswordError.style = errorMessageStyle;
+        isValid = false;
+    }
+
+    if (newPassword !== confirmPassword) {
+        newPasswordError.textContent = 'New password and confirm password do not match';
+        newPasswordError.style = errorMessageStyle;
+        confirmPasswordError.textContent = 'New password and confirm password do not match';
+        confirmPasswordError.style = errorMessageStyle;
+        isValid = false;
+    }
+
+    if (isValid) {
+        fetch(`/changePassword?currentPassword=${encodeURIComponent(currentPassword)}&newPassword=${encodeURIComponent(newPassword)}`, {
+            method: 'POST',
+            // Additional headers or configurations if needed
+            // body: JSON.stringify({ currentPassword, newPassword }), // Use this for a more secure JSON payload
+        })
+        .then(response => {
+            if (response.ok) {
+                Swal.fire({
+                    title: 'Password Changed!',
+                    text: 'Your password has been changed successfully.',
+                    icon: 'success',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    // Reload the page after successful password change
+                    window.location.reload();
+                });
+            
+            } else if (response.status === 400) {
+                response.json().then(data => {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: data.message || 'Something went wrong!',
+                        icon: 'error',
+                        confirmButtonColor: '#d33',
+                        confirmButtonText: 'OK'
+                    });
+                });
+            } else {
+                // Handle other error responses if needed
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Handle fetch error
+        });
+    }
+});
+
+
+                                         </script>
                                           
                                           
                                               
