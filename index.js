@@ -4,29 +4,16 @@ require("dotenv").config();
 const mongoose=require('mongoose')
 mongoose.connect(process.env.MONGO_URL)
 const nocache = require('nocache')
-
-app.use(nocache())
-
-app.use(express.json())
-app.use(express.static('public'));
-
-
+const userRoute = require('./Router/userRouter')
+const adminRoute =  require('./Router/adminRouter')
 PORT = process.env.PORT || 4000
 
-// =============user route==============
 
-const userRoute = require('./Router/userRouter')
+app.use(nocache())
+app.use(express.json())
+app.use(express.static('public'));
 app.use('/',userRoute)
-
-// =====================================
-
-
-// ==============admin route==============
-
-const adminRoute =  require('./Router/adminRouter')
 app.use('/admin',adminRoute)
-
-// =======================================
 
 
 

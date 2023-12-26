@@ -95,18 +95,20 @@
 					<!-- Collect the nav links, forms, and other content for toggling -->
 					<div class="collapse navbar-collapse offset" id="navbarSupportedContent">
 						<ul class="nav navbar-nav menu_nav ml-auto">
-							<li class="nav-item"><a class="nav-link" href="/home">Home</a></li>
-							<li class="nav-item submenu dropdown">
-								<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-								 aria-expanded="false">Shop</a>
-								<ul class="dropdown-menu">
+							<li class="nav-item active"><a class="nav-link" href="/home">Home</a></li>
+							<li class="nav-item"><a class="nav-link" href="/bookList">All Books</a></li>
+							
+							<!-- <li class="nav-item submenu dropdown">
+								<a href="/product" class="nav-link dropdown-toggle"  role="button" aria-haspopup="true"
+								 aria-expanded="false"></a> -->
+								<!-- <ul class="dropdown-menu">
 									<li class="nav-item"><a class="nav-link" href="category.html">Shop Category</a></li>
 									<li class="nav-item"><a class="nav-link" href="single-product.html">Product Details</a></li>
 									<li class="nav-item"><a class="nav-link" href="checkout.html">Product Checkout</a></li>
 									<li class="nav-item"><a class="nav-link" href="cart.html">Shopping Cart</a></li>
 									<li class="nav-item"><a class="nav-link" href="confirmation.html">Confirmation</a></li>
-								</ul>
-							</li>
+								</ul> -->
+							<!-- </li> -->
 							<li class="nav-item submenu dropdown">
 								<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
 								 aria-expanded="false">Blog</a>
@@ -115,19 +117,21 @@
 									<li class="nav-item"><a class="nav-link" href="single-blog.html">Blog Details</a></li>
 								</ul>
 							</li>
-							<li class="nav-item submenu dropdown active">
+							<li class="nav-item submenu dropdown">
 								<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
 								 aria-expanded="false">Pages</a>
 								<ul class="dropdown-menu">
 									<li class="nav-item"><a class="nav-link" href="login.html">Login</a></li>
-									<li class="nav-item active"><a class="nav-link" href="tracking.html">Tracking</a></li>
+									<li class="nav-item"><a class="nav-link" href="tracking.html">Tracking</a></li>
 									<li class="nav-item"><a class="nav-link" href="elements.html">Elements</a></li>
 								</ul>
 							</li>
-							<li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+							<li class="nav-item"><a class="nav-link" href="/account">Account</a></li>
+							<li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+
 						</ul>
 						<ul class="nav navbar-nav navbar-right">
-							<li class="nav-item"><a href="#" class="cart"><span class="ti-bag"></span></a></li>
+							<li class="nav-item"><a href="/cart" class="cart"><span class="ti-bag"></span></a></li>
 							<li class="nav-item">
 								<button class="search"><span class="lnr lnr-magnifier" id="search"></span></button>
 							</li>
@@ -304,7 +308,136 @@
                                                 <div>No billing addresses found.</div>
                                             <% } %>
                                         </div>
+                                        <button id="toggleFormButton" class="btn btn-warning mt-5" data-bs-toggle="modal" data-bs-target="#exampleModal" style="background-color: orange; border:none">Add address</button>
+                        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-body">
+                                        <form class="contact_form" id="myForm" action="/addaddress" method="POST" onsubmit="return validateForm()">
+                                            <div class="mb-3">
+                                                <label for="first"  class="form-label">First name</label>
+                                                <input type="text"  class="form-control" id="first" name="fname" >
+                                                <span id="firstError" class="text-danger"></span>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="last" class="form-label">Last name</label>
+                                                <input type="text" class="form-control" id="last" name="lname" >
+                                                <span id="lastError" class="text-danger"></span>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="city" class="form-label">City/Town</label>
+                                                <input type="text" class="form-control" id="city" name="city" >
+                                                <span id="cityError" class="text-danger"></span>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="district" class="form-label">District</label>
+                                                <input type="text" class="form-control" id="district" name="district" >
+                                                <span id="districtError" class="text-danger"></span>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="state" class="form-label">State</label>
+                                                <input type="text" class="form-control" id="state" name="state" >
+                                                <span id="stateError" class="text-danger"></span>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="pincode" class="form-label">Pincode</label>
+                                                <input type="text" class="form-control" id="zip" name="pincode" >
+                                                <span id="pincodeError" class="text-danger"></span>
+                                            </div>
+                                            <div class="mb-3">
+                                                <button type="submit" class="btn btn-warning">Submit</button>
+                                            </div>
+                                        </form>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <script>
+                            document.getElementById('toggleFormButton').addEventListener('click', function() {
+                                const modal = new bootstrap.Modal(document.getElementById('exampleModal'));
+                                modal.toggle();
+                            });
+                    
+                            function validateForm() {
+                                const firstName = document.getElementById('first').value;
+                                const lastName = document.getElementById('last').value;
+                                const city = document.getElementById('city').value;
+                                const district = document.getElementById('district').value;
+                                const state = document.getElementById('state').value;
+                                const pincode = document.getElementById('zip').value;
+                    
+                                const nameRegex = /^[A-Za-z]+$/;
+                                const pincodeRegex = /^\d{6}$/;
+                    
+                                if (!nameRegex.test(firstName)) {
+                                    showError('firstError', 'First name should contain only letters');
+                                    return false;
+                                } else {
+                                    hideError('firstError');
+                                }
+                    
+                                if (!nameRegex.test(lastName)) {
+                                    showError('lastError', 'Last name should contain only letters');
+                                    return false;
+                                } else {
+                                    hideError('lastError');
+                                }
+                    
+                                // Validation for city, district, state, and pincode
+                                // Add similar checks using regular expressions and conditions
+                    
+                                if (!nameRegex.test(city)) {
+                                    showError('cityError', 'City should contain only letters');
+                                    return false;
+                                } else {
+                                    hideError('cityError');
+                                }
+                    
+                                if (!nameRegex.test(district)) {
+                                    showError('districtError', 'District should contain only letters');
+                                    return false;
+                                } else {
+                                    hideError('districtError');
+                                }
+                    
+                                if (!nameRegex.test(state)) {
+                                    showError('stateError', 'State should contain only letters');
+                                    return false;
+                                } else {
+                                    hideError('stateError');
+                                }
+                    
+                                if (!pincodeRegex.test(pincode)) {
+                                    showError('pincodeError', 'Pincode should be a 6-digit number');
+                                    return false;
+                                } else {
+                                    hideError('pincodeError');
+                                }
+                    
+                                return true; // Form submits if all validations pass
+                            }
+                    
+                            function showError(id, message) {
+                                const errorElement = document.getElementById(id);
+                                errorElement.innerText = message;
+                                errorElement.classList.add('error-message'); // Add the error class
+                            }
+                    
+                            function hideError(id) {
+                                const errorElement = document.getElementById(id);
+                                errorElement.innerText = '';
+                                errorElement.classList.remove('error-message'); // Remove the error class
+                            }
+                        </script>
+                    
+                        <style>
+                            .error-message {
+                                color: red;
+                            }
+                        </style>
+                                    </div>
+                                    
                                     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 
 <!-- ... (your HTML code) ... -->

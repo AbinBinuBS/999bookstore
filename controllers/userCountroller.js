@@ -3,6 +3,7 @@ const Product = require('../models/productModel')
 const Category = require('../models/categoryModel')
 const Cart = require('../models/cartModel')
 const Order = require('../models/orderModel')
+require("dotenv").config();
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const express = require('express')
@@ -31,7 +32,7 @@ const securePassword = async(password)=>{
 function generateOTP() {
     const otp = Math.floor(1000 + Math.random() * 9000);
     
-    return otp.toString() // Convert to string for a 4-digit format
+    return otp.toString()
 }
 const generatedOTP = generateOTP();
 
@@ -40,8 +41,8 @@ const sendVerifyMail = async(data)=>{
     let mailTransporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-            user: 'skycrowlove@gmail.com',
-            pass: 'rete eeaa kcdk pbwm'
+            user: process.env.USEREMAIL,
+            pass: process.env.USERPASSWORD
         }
     });
      
@@ -83,7 +84,6 @@ const insertUser = async(req,res)=>{
             name:req.body.name,
             email:req.body.email,
             phone:req.body.phone,
-            image:req.file.filename,
             password:req.body.password,
             password1:req.body.password1
         } 
@@ -128,7 +128,7 @@ const verifyOtp = async(req,res)=>{
          const spassword1 = await securePassword(req.session.Data.password1)
         console.log("when created secure password :",spassword)
 
-        const {name,email,phone,image,password,password1}=req.session.Data
+        const {name,email,phone,password,password1}=req.session.Data
 
 
         const Otp=req.body.otp
@@ -140,7 +140,6 @@ const verifyOtp = async(req,res)=>{
                 name:name,
                 email:email,
                 phone:phone,
-                image:image,
                 password:spassword,
                 is_admin:0,
                 password1:spassword1
@@ -633,7 +632,7 @@ const checkoutaddress = async(req,res)=>{
         return res.status(404).json({ message: 'User not found' });
     }
 
-    user.address.push(addressDetails); // Add a new address object to the array
+    user.address.push(addressDetails);
 
     await user.save();
 
@@ -711,7 +710,6 @@ const paymentManagement = async (req,res)=>{
                 );
               } else {
                 console.log(`Product ${productData} is out of stock.`);
-                // Handle out of stock scenario here
               }
             }
           } else {
@@ -788,6 +786,33 @@ const deleteAddress =  async(req,res)=>{
     }
 }
 
+const addaddress = async(req,res)=>{
+    try{
+        const userId=req.session.user_id
+        const addressDetails = {
+            firstName: req.body.fname,
+            lastName: req.body.lname,
+            City: req.body.city,
+            District: req.body.district,
+            State: req.body.state,
+            Pincode: req.body.pincode
+        };
+        console.log(addressDetails)
+        const user = await User.findById(userId);
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.address.push(addressDetails);
+
+    await user.save();
+
+    res.redirect('/account');
+    }catch(error){
+        console.log(error.message)
+    }
+}
+
 
 
 
@@ -837,7 +862,6 @@ if (orderData) {
             console.log("Quantity updated for Product ID:", item.productId);
         } catch (error) {
             console.error("Error updating quantity:", error);
-            // Handle error here if necessary
         }
     }
 } else {
@@ -948,6 +972,7 @@ module.exports = {
     showeditaddress,
     editaddress,
     deleteAddress,
+    addaddress,
     paymentManagement,
     accountManagment,
     cancerlOrReturn,

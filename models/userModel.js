@@ -40,10 +40,6 @@ const userSchema = mongoose.Schema({
         type:String,
         required:false
     },
-    image:{
-        type:String,
-        required:true
-    },
     password:{
         type:String,
         required:true

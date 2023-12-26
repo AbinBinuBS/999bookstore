@@ -389,7 +389,6 @@ const orderStatus = async (req, res) => {
             return res.status(400).json({ message: 'Missing required parameters' });
         }
 
-        // Assuming Order is your Mongoose model for orders
         const updateStatus = await Order.findByIdAndUpdate(id, { $set: { Status: selectedOption } });
 
         if (!updateStatus) {
