@@ -284,7 +284,7 @@
                                         <% for (let i = 0; i < products.Image.length; i++) { %>
                                             <div class="input-upload position-relative mb-3" style="max-width: 300px;">
                                                 <div style="position: relative;">
-                                                    <img src="/productimages/<%= products.Image[i] %>" alt="" class="img-fluid rounded" style="width: 100%;">
+                                                    <img src="/productimages/<%= products.Image[i] %>"  alt="" class="img-fluid rounded" style="width: 100%;">
                                                     <button type="button" class="btn btn-danger btn-sm position-absolute bottom-0 start-50 translate-middle-x" style="transform: translateX(-50%);" onclick="handleRemove('<%= products.Image[i] %>')">Remove</button>
                                                 </div>
                                             </div>
@@ -292,7 +292,7 @@
                                     <% } else { %>
                                         <img src="/assets1/imgs/theme/upload.svg" alt="">
                                     <% } %>
-                                    <input class="form-control mt-3" name="image" id="imageInput" type="file" multiple onchange="displaySelectedImages(event)">
+                                    <input class="form-control mt-3" accept="image/*" name="image" id="imageInput" type="file" multiple onchange="displaySelectedImages(event)">
                                     <input type="hidden" name="removedImages" id="removedImagesInput">
                                     <div class="input-upload position-relative mb-3" style="max-width: 300px;">
                                         <div id="selectedImagesContainer" style="position: relative;"></div>

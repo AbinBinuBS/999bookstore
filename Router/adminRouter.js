@@ -62,6 +62,15 @@ admin_route.post('/deletecategory',adminAuth.isLogin,adminController.deleteCateg
 admin_route.get('/order',adminAuth.isLogin,adminController.orderManagement)
 
 admin_route.get('/orderStatus',adminAuth.isLogin,adminController.orderStatus)
+admin_route.get('/vieworders',adminController.viewsorders)
+admin_route.post('/orderstatus',adminController.cancelOrder)
+admin_route.get('/coupon',adminController.couponManagement)
+admin_route.post('/coupon',adminController.addCoupons)
+admin_route.post('/updateCouponStatus',adminController.updateCouponStatus)
+admin_route.get('/editCoupon',adminController.loadEditCoupon)
+admin_route.post('/editCoupon',adminController.EditCoupon)
+
+
 
 
 

@@ -265,28 +265,28 @@
                                                         <option value="<%= orderData[i].Status %>" selected><%= orderData[i].Status %></option>
                                                         <option value="Order Placed">Order Placed</option>
                                                         <option value="Delivered">Delivered</option>
-                                                        <option value="Cancelled">Cancel</option>
                                                     <% } else if (orderData[i].Status === 'Order Placed') { %>
                                                         <option value="<%= orderData[i].Status %>" selected><%= orderData[i].Status %></option>
                                                         <option value="Delivered">Delivered</option>
-                                                        <option value="Cancelled">Cancel</option>
                                                     <% } else if (orderData[i].Status === 'Delivered') { %>
                                                         <option value="<%= orderData[i].Status %>" selected><%= orderData[i].Status %></option>
-                                                    <% } %>
+                                                        <% } else if (orderData[i].Status === 'Return') { %>
+                                                            <option value="<%= orderData[i].Status %>" selected><%= orderData[i].Status %></option>
+                                                        <% } %>
                                                 </select>
                                                 
                                                 
                                             </td>
                                             <td class="text-end">
                                                 <input type="hidden" value="<%= orderData[i]._id %>">
-                                                <button class="btn btn-md rounded font-sm change-btn">Change</button>                                               <div class="dropdown">
+                                                <button class="btn btn-md rounded font-sm change-btn">Change</button>                                              
+                                                 <div class="dropdown">
                                                     <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm">
                                                         <i class="material-icons md-more_horiz"></i>
                                                     </a>
                                                     <div class="dropdown-menu">
-                                                        <a class="dropdown-item" href="#">View detail</a>
-                                                        <a class="dropdown-item" href="#">Edit info</a>
-                                                        <a class="dropdown-item text-danger" href="#">Delete</a>
+                                                        <a class="dropdown-item" href="/admin/vieworders?id=<%= orderData[i]._id %>">View detail</a>
+                                                        
                                                     </div>
                                                 </div> <!-- dropdown //end -->
                                             </td>

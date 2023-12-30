@@ -223,17 +223,30 @@
                                         <a href="/account" style="text-decoration: none; color: white;">Back</a>
                                     </button>                                    
                                 </td>
-                                <% if (orderData.Status !== 'Cancelled') { %>
+                                <% if (orderData.Status !== 'Cancelled' && orderData.Status !== 'Delivered' && orderData.Status !== 'Return' ) { %>
                                     <td>
                                         <button onclick="confirmCancellation('<%= orderData._id %>')" style="background-color: red; border: none; color: white; font-size: 16px;">Cancel</button>
                                     </td>
-                                <% } else { %>
+                                <% } else if(orderData.Status === 'Delivered') { %>
                                     <td>
+                                        <h1 style="color: green;">Delivered</h2>
+                                    </td>
+									<td>
+										<button onclick="confirmReturn('<%= orderData._id %>')" style="background-color: green; border: none; color: white; font-size: 18px; padding: 8px 16px;">
+											Return
+										</button>
+									</td>
+                                    
+                                <% } else if(orderData.Status === 'Cancelled') {%>
+									<td>
                                         <h2 style="color: red;">Cancelled</h2>
                                     </td>
-                                    
-                                <% } %>
-                                
+								<% } else if(orderData.Status === 'Return') {%>
+									<td>
+                                        <h1 style="color: green;">Return</h1>
+                                    </td>
+								<%}%>
+							
                                 
                                 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
                                 <script>
@@ -244,6 +257,52 @@
                                             icon: 'warning',
                                             showCancelButton: true,
                                             confirmButtonColor: 'red',
+                                            cancelButtonColor: 'gray',
+                                            confirmButtonText: 'Yes, cancel it!'
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                Swal.showLoading(); // Show loading indicator
+                                                fetch('/orderstatus', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json'
+                                                    },
+                                                    body: JSON.stringify({ orderId: orderId })
+                                                })
+                                                .then(response => {
+                                                    if (response.ok) {
+                                                        // Show success message
+                                                        Swal.fire({
+                                                            title: 'Cancelled!',
+                                                            text: 'Order has been cancelled.',
+                                                            icon: 'success'
+                                                        }).then(() => {
+                                                            // Redirect to '/account' after the user acknowledges the success message
+                                                            window.location.href = '/account';
+                                                        });
+                                                    } else {
+                                                        throw new Error('Failed to cancel order');
+                                                    }
+                                                })
+                                                .catch(error => {
+                                                    // Handle error if the POST request fails
+                                                    console.error(error);
+                                                    Swal.fire({
+                                                        title: 'Error!',
+                                                        text: 'Failed to cancel order.',
+                                                        icon: 'error'
+                                                    });
+                                                });
+                                            }
+                                        });
+                                    }
+									function confirmReturn(orderId) {
+                                        Swal.fire({
+                                            title: 'Are you sure?',
+                                            text: 'You want to return this products!',
+                                            icon: 'warning',
+                                            showCancelButton: true,
+                                            confirmButtonColor: 'green',
                                             cancelButtonColor: 'gray',
                                             confirmButtonText: 'Yes, cancel it!'
                                         }).then((result) => {

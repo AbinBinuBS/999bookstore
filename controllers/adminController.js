@@ -2,6 +2,7 @@ const User = require('../models/userModel')
 const Product = require('../models/productModel')
 const Category = require('../models/categoryModel')
 const Order = require('../models/orderModel')
+const Coupon = require('../models/couponModal')
 const bcrypt = require('bcrypt')
 const express = require('express')
 const app = express();
@@ -402,17 +403,154 @@ const orderStatus = async (req, res) => {
     }
 };
 
-module.exports = { orderStatus };
+// module.exports = { orderStatus };
 
+const viewsorders =  async(req,res)=>{
+    try{
+        id=req.query.id
+        const orderData = await Order.findById(id).populate('items.productId')
 
+        res.render('view-orders',{orderData})
+    }catch(error){
+        console.log(error.message)
+    }
+}
 
+const cancelOrder = async(req,res)=>{
+    try{
+        console.log("hai i am reached here",req.body)
+        const orderData = await Order.findOneAndUpdate({_id:req.body.orderId},{$set:{Status:'Cancelled'}})
+if (orderData) {
+    for (const item of orderData.items) {
+        try {
+            console.log("Product ID:", item.productId);
+            const editQuantity = await Product.findOneAndUpdate(
+                { _id: item.productId },
+                { $inc: { Quantity: 1 * item.quantity } }
+            );
+            console.log("Quantity updated for Product ID:", item.productId);
+        } catch (error) {
+            console.error("Error updating quantity:", error);
+        }
+    }
+    if(orderData.paymentMethod !== 'Cash on delevery'){
+        const addToWallet = await User.findOneAndUpdate(
+            { _id: orderData.userId },
+            { $inc: { wallet: orderData.totalAmount } }
+        );
+        console.log(addToWallet)
+    }
+} else {
+    console.log("Order not found");
+}
 
-
+        res.redirect('/admin/order')
+    }catch(error){
+        console.log(error.message)
+    }
+}
 
 
 // ==============================end of order details=================================
 
+// =============================Coupon======================================
 
+const couponManagement = async (req,res)=>{
+    try{
+        const currentDate = new Date();
+        const couponData = await Coupon.find()
+        for (const coupon of couponData) {
+            if (coupon.expiryDate < currentDate) {
+                await Coupon.findByIdAndUpdate(coupon._id, { is_active: 0 });
+            }
+        }
+        res.render('coupon',{couponData:couponData})
+    }catch(error){
+        console.log(error.message)
+    }
+}
+
+const addCoupons = async (req,res)=>{
+    try{
+        console.log(req.body)
+        const couponData = new Coupon({
+            couponCode:req.body.couponname,
+            Discount:req.body.discount,
+            expiryDate:req.body.expdate,
+            Limit:req.body.limit,
+            minPurchase:req.body.minPurchase
+        })
+        const coupon = await couponData.save()
+        res.redirect('/admin/coupon') 
+    }catch(error){
+        console.log(error.message);
+    }
+}
+
+
+const updateCouponStatus = async (req,res)=>{
+    try{
+        id=req.body.couponId
+        const currentDate = new Date();
+        const couponExpiryDate = await Coupon.findById({_id:id})
+        const is_active =req.body.is_active
+        
+            if (couponExpiryDate.expiryDate > currentDate) {
+                let changeStatus 
+                if(is_active==1){
+                    changeStatus=0;
+                }else{
+                    changeStatus=1;
+                }
+                const couponData = await Coupon.findOneAndUpdate({_id:id},{$set:{is_active:changeStatus}})
+                res.status(200).json({ message: "Success" });
+                console.log("i am here at if")
+            }else{
+                res.status(500).json({ message: "Failed"});
+                console.log("i am here at else")
+
+            }  
+    }catch(error){
+        console.log(error.message);
+    }
+}
+
+
+const loadEditCoupon = async (req,res)=>{
+    try{
+        const couponId=req.query.couponId
+        const couponData = await Coupon.findById({_id:couponId})
+        console.log(couponData)
+        res.render('editcoupon',{couponData:couponData})
+    }catch(error){
+        console.log(error.message)
+    }
+}
+
+
+const EditCoupon =  async (req,res)=>{
+    try{
+        id=req.body.id
+        const coupon = await Coupon.findById({_id:id})
+        console.log(req.body)
+        const updatedData = {
+            couponCode:req.body.couponname,
+            Discount:req.body.discount,
+            expiryDate:req.body.expdate,
+            minPurchase:req.body.minPurchase,
+            Limit:req.body.limit
+        }
+        const couponData =await Coupon.findOneAndUpdate(coupon._id,updatedData, { new: true })
+        if(couponData){
+            res.redirect('/admin/coupon')
+        }
+    }catch(error){
+        console.log(error.message);
+    }
+}
+
+
+// ============================end of coupon================================
 
 
 
@@ -438,7 +576,15 @@ module.exports = {
     deleteCategory,
     categoryBlock,
     orderManagement,
-    orderStatus
+    orderStatus,
+    viewsorders,
+    viewsorders,
+    cancelOrder,
+    couponManagement,
+    addCoupons,
+    updateCouponStatus,
+    loadEditCoupon,
+    EditCoupon
     
 
 

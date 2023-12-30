@@ -60,6 +60,10 @@ const userSchema = mongoose.Schema({
         type:String,
         required:false
     },
+    wallet:{
+        type:Number,
+        require:true
+    },
     address: [addressSchema],
     currentDate:{
         type:Number,

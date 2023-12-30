@@ -28,6 +28,8 @@
     <link rel="stylesheet" href="css/nouislider.min.css">
     <link rel="stylesheet" href="css/bootstrap.css">
     <link rel="stylesheet" href="css/main.css">
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 
 <body>
@@ -124,37 +126,73 @@
     <!--================Checkout Area =================-->
     <section class="checkout_area section_gap">
         <div class="container">
-            <div class="returning_customer">
-                <div class="check_title">
-                    <h2>Returning Customer? <a href="#">Click here to login</a></h2>
-                </div>
-                <p>If you have shopped with us before, please enter your details in the boxes below. If you are a new
-                    customer, please proceed to the Billing & Shipping section.</p>
-                <form class="row contact_form" action="#" method="post" novalidate="novalidate">
-                    <div class="col-md-6 form-group p_star">
-                        <input type="text" class="form-control" id="name" name="name">
-                        <span class="placeholder" data-placeholder="Username or Email"></span>
-                    </div>
-                    <div class="col-md-6 form-group p_star">
-                        <input type="password" class="form-control" id="password" name="password">
-                        <span class="placeholder" data-placeholder="Password"></span>
-                    </div>
-                    <div class="col-md-12 form-group">
-                        <button type="submit" value="submit" class="primary-btn">login</button>
-                        <div class="creat_account">
-                            <input type="checkbox" id="f-option" name="selector">
-                            <label for="f-option">Remember me</label>
-                        </div>
-                        <a class="lost_pass" href="#">Lost your password?</a>
-                    </div>
-                </form>
-            </div>
             <div class="cupon_area">
-                <div class="check_title">
-                    <h2>Have a coupon? <a href="#">Click here to enter your code</a></h2>
-                </div>
-                <input type="text" placeholder="Enter coupon code">
-                <a class="tp_btn" href="#">Apply Coupon</a>
+                <!-- HTML structure -->
+<!-- HTML structure -->
+<!-- HTML structure using Bootstrap classes -->
+<!-- HTML structure using Bootstrap classes -->
+<div class="check_title" id="couponTitle">
+    <h2><button id="showModal" class="btn btn-warning">Coupons</button></h2>
+</div>
+
+<!-- Modal Structure -->
+<div class="modal" id="blankModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h5 class="modal-title">Coupons</h5>
+                <button type="button" class="close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <%if(couponData && couponData.length>0){%>
+             <%for(let i=0;i<couponData.length;i++){%>
+                <div class="card-body">
+                    <h3 class="card-title text-center p-3 mb-0 bg-warning text-white rounded-pill">
+                        <%= couponData[i].couponCode %>
+                    </h3>
+                </div>                
+             <%}}%>
+                
+             </div>
+        </div>
+    </div>
+</div>
+<style>
+    .fixed-box {
+    /* Styling for the rectangular box */
+    background-color: #fff; /* Background color of the box */
+    border: 1px solid rgb(5, 5, 5); /* Border around the box */
+    padding: 5px 10px; /* Padding inside the box */
+    display: inline-block; /* Ensure the box size fits the content */
+    margin-left: 10px; /* Adjust the margin for positioning */
+}
+</style>
+<script>
+   // JavaScript
+document.addEventListener("DOMContentLoaded", function() {
+    const showModalButton = document.getElementById("showModal");
+    const blankModal = document.getElementById("blankModal");
+    const closeModalButton = document.getElementById("closeModal");
+
+    showModalButton.addEventListener("click", function(event) {
+        event.preventDefault(); // Prevent the default action of the button
+        blankModal.style.display = "block"; // Show the blank modal
+    });
+
+    closeModalButton.addEventListener("click", function() {
+        blankModal.style.display = "none"; // Hide the modal
+    });
+});
+
+</script>
+            
+
+
+<input type="text" id="couponInput" placeholder="Enter coupon code">
+<button class="tp_btn" onclick="applyCoupon()">Apply Coupon</button>
+
+
             </div>
             <div class="billing_details">
                 <div class="row">
@@ -462,34 +500,99 @@
                                 
                             </ul>
                             <ul class="list list_2">
-                                </li>
+                                <li><a href="#">Coupon <span id="couponValue">-0</span></a></li>
                                 <li><a href="#">Shipping <span>Free</span></a></li>
                                 <li id="fullTotal"><a href="#">Total <span id="totalSum"></span></a></li>
                             </ul>
+                            
                             <script>
                                 // Calculate total sum of all 'tPrice' elements
-                            function calculateTotalSum() {
-                            const tPriceElements = document.querySelectorAll('[id^="tPrice_"]');
-                            let totalSum = 0;
-                            tPriceElements.forEach(element => {
-                                const priceText = element.textContent.replace('$', ''); // Remove '$' from text
-                                const price = parseFloat(priceText); // Convert text to number
-                                totalSum += price;
-                            });
-                            return totalSum.toFixed(2); // Return total sum rounded to 2 decimal places
-                            }
+                                function calculateTotalSum() {
+                                    const tPriceElements = document.querySelectorAll('[id^="tPrice_"]');
+                                    let totalSum = 0;
+                                    tPriceElements.forEach(element => {
+                                        const priceText = element.textContent.replace('$', ''); // Remove '$' from text
+                                        const price = parseFloat(priceText); // Convert text to number
+                                        totalSum += price;
+                                    });
+                                    return totalSum.toFixed(2); // Return total sum rounded to 2 decimal places
+                                }
+                            
+                                // Display total sum in the 'totalSum' element
+                                function displayTotalSum(total) {
+                                const totalSumElement = document.getElementById('totalSum');
+                                if (totalSumElement) {
+                                    totalSumElement.textContent = total; // Set the total sum value
+                                }
+                                }
+                            
+                                // Apply Coupon and update total sum
+                                function applyCoupon() {
+        const couponCode = document.getElementById('couponInput').value;
+        let totalAmount = parseFloat(calculateTotalSum());
 
-                            // Display total sum in the 'totalSum' element
-                            const totalSumElement = document.getElementById('totalSum');
-                            if (totalSumElement) {
-                            totalSumElement.textContent = calculateTotalSum(); // Set the total sum value
-                            }
+        fetch('/applycoupon', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+                couponcode: couponCode,
+                totalAmount: totalAmount
+            }),
+        })
+        .then(response => {
+            if (response.status === 200) {
+                return response.json();
+            } else {
+                throw new Error('Network response was not ok');
+            }
+        })
+        .then(data => {
+            if (data.message === 'Success') {
+                // If successful response, update the coupon value and total sum
+                const couponValueElement = document.getElementById('couponValue');
+                if (couponValueElement) {
+                    couponValueElement.textContent = `-${data.Discount}`;
+                }
+                totalAmount -= data.Discount; // Subtract discount from totalAmount
+                displayTotalSum(totalAmount.toFixed(2)); // Update the displayed total
+                Swal.fire('Success!', 'Coupon applied successfully!', 'success');
 
-                            </script>
+                // Store values in localStorage after successful response
+                localStorage.setItem('couponValue', data.Discount);
+                localStorage.setItem('totalAmount', totalAmount.toFixed(2));
+            } else {
+                // Handle other cases if needed
+                Swal.fire('Error!', data.message || 'Failed to apply coupon.', 'error');
+            }
+        })
+        .catch(error => {
+            // Handle errors if the request fails
+            console.error('Error:', error);
+            Swal.fire('Error!', 'Failed to apply coupon.', 'error');
+        });
+    }
+
+    // Initial display of total sum (code remains unchanged)
+    const storedCouponValue = localStorage.getItem('couponValue');
+    const storedTotalAmount = localStorage.getItem('totalAmount');
+    if (storedCouponValue && storedTotalAmount) {
+        const couponValueElement = document.getElementById('couponValue');
+        if (couponValueElement) {
+            couponValueElement.textContent = `-${storedCouponValue}`;
+        }
+        displayTotalSum(storedTotalAmount);
+    } else {
+        displayTotalSum(calculateTotalSum());
+    }
+</script>
+                           
+                            
                             <div class="payment_item">
                                 <div class="radion_btn">
-                                    <input type="radio" id="f-option5" name="pay" value="check" checked>
-                                    <label for="f-option5">Check payments</label>
+                                    <input type="radio" id="f-option5" name="pay" value="wallet" checked>
+                                    <label for="f-option5">Wallet</label>
                                     <div class="check"></div>
                                 </div>
                             </div>
@@ -503,7 +606,7 @@
                             <div class="payment_item active">
                                 <div class="radion_btn">
                                     <input type="radio" id="f-option7" name="pay" value="paypal">
-                                    <label for="f-option7">Paypal</label>
+                                    <label for="f-option7">online</label>
                                     <div class="check"></div>
                                 </div>
                             </div>
@@ -525,36 +628,13 @@
     </section>
     
 
-    <!-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-
-    <script>
-        function confirmPayment() {
-            Swal.fire({
-                title: 'Are you sure?',
-                text: 'Proceed to payment?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Yes',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Redirect or perform payment action here
-                    // For example:
-                    window.location.href = '/payment'; // Replace '/payment' with your payment URL
-                }
-            });
-        }
-    </script> -->
     
-    
-<!-- Add the SweetAlert library -->
-<!-- Include SweetAlert library -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 
 <script>
     document.getElementById('proceedToPayButton').addEventListener('click', function(event) {
         const selectedAddressIndex = document.querySelector('input[name="payment"]:checked');
-
+        console.log("In ejs");
         if (!selectedAddressIndex) {
             Swal.fire({
                 title: 'No Address Selected',
@@ -569,7 +649,6 @@
         const paymentMethod = document.querySelector('input[name="pay"]:checked').value;
         const totalSumElement = document.getElementById('totalSum');
         const totalAmount = parseFloat(totalSumElement.textContent);
-
         Swal.fire({
             title: 'Are you sure you want to proceed?',
             text: `Total amount: $${totalAmount}. Payment method: ${paymentMethod}`,
@@ -579,7 +658,118 @@
             cancelButtonText: 'Cancel'
         }).then((result) => {
             if (result.isConfirmed) {
-                fetch('/proceedtoPayment', {
+                console.log("In razor");
+                let rzp1;
+            function initiatePayment(orderId, paymentStatus) {             
+                // console.log(localStorage.getItem('totalAfterCouponApply'))
+                let order = JSON.stringify(orderId);
+                console.log(order);
+                var options = {
+                    "key": "rzp_test_C2ySOsHK5SbjQ0",
+                    "amount": Math.ceil(order.amount),
+                    "currency": "INR",
+                    "name": "Companion Bags",
+                    "description": "Test Transaction",
+                    "order_id": orderId.id,
+                    "handler": function (response) {
+                        console.log("Finall");
+                        afterPaymentSuccess();
+                    },
+                    "theme": {
+                        "color": "#3399cc"
+                    }
+                };
+
+                rzp1 = new Razorpay(options);
+
+                rzp1.on('payment.failed', function (response) {
+                    console.log("fail");
+                    alert(response.error.code);
+                    alert(response.error.description);
+                    alert(response.error.source);
+                    alert(response.error.step);
+                    alert(response.error.reason);
+                    alert(response.error.metadata.order_id);
+                    alert(response.error.metadata.payment_id);
+                    window.location.reload();
+                });
+
+                rzp1.open();
+            }
+            if(paymentMethod === 'paypal') { 
+
+                const requestOptions = {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            amount: totalAmount
+                        })
+                    };
+
+                    fetch('/onlinepayment', requestOptions)
+                        .then(response => {
+                            if (!response.ok) {
+                                console.log("Response issue");
+                                throw new Error(`HTTP error! Status: ${response.status}`);
+                            }else{
+                                console.log("Response issue");
+                                return response.json();
+
+                            }
+                            
+                        })
+                        .then(data => {
+                            console.log(data.razorOrderId)
+                            const orderId = data.razorOrderId;
+                            const paymentStatus = data.paymentStatus;
+                            // Assuming you have paymentStatus in the response
+                            // Call the initiatePayment function with the orderId and selectedAddressId
+                            initiatePayment(orderId, paymentStatus);
+                        })
+                        .catch(error => {
+                            console.error("Fetch error:", error);
+                        });
+                    }else if(paymentMethod === 'wallet'){
+                        const walletOption = {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            amount: totalAmount
+                        })
+                    };
+
+                    fetch('/walletpayment', walletOption)
+                        .then(response => {
+                            return response.json()
+                            
+                        }).then(data=>{
+                            if(data.message=="success"){
+                                afterPaymentSuccess()
+                            }else{
+                                Swal.fire({
+                                 title: 'Insufficient Wallet Balance',
+                                text: 'You do not have enough money in your wallet.',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            })
+                            }
+                        })
+                        
+                        .catch(error => {
+                            console.log(error);
+                        });
+                    }else if(paymentMethod === 'Cash on delevery'){
+                        afterPaymentSuccess()
+                    }
+            
+            }
+        })
+        function afterPaymentSuccess(){
+            fetch('/proceedtoPayment', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -596,37 +786,49 @@
                     } else {
                         throw new Error('Failed to place the order. Please try again later.');
                     }
-                })
-                .then(data => {
-                    // Check if the response contains the success message
+                }).then(data => {
                     if (data && data.message === 'Order placed successfully') {
-                        // Order placed successfully
-                        Swal.fire({
-                            title: 'Order Placed!',
-                            text: 'Your order has been successfully placed.',
-                            icon: 'success'
-                        }).then(() => {
-                            window.location.href = '/account'; // Redirect to the success page
-                        });
-                    } else {
-                        // Handle unexpected response
-                        throw new Error('Unexpected response from the server');
-                    }
-                })
-                .catch(error => {
-                    // Handle fetch error or order placement failure
-                    console.error('Error:', error);
+                    // Order placed successfully
                     Swal.fire({
-                        title: 'Error',
-                        text: error.message,
-                        icon: 'error',
-                        confirmButtonText: 'OK'
+                        title: 'Order Placed!',
+                        text: 'Your order has been successfully placed.',
+                        icon: 'success',
+                        showCancelButton: true,
+                        showConfirmButton: true,
+                        cancelButtonText: 'Continue Shopping',
+                        confirmButtonText: 'View Order'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = '/account'; // Redirect to view order/account
+                        } else if (result.dismiss === Swal.DismissReason.cancel) {
+                            window.location.href = '/home'; // Redirect to continue shopping/home
+                        }
                     });
-                });
-            }
-        });
-    });
-</script>
+                }
+                })
+                // Check if the response contains the success message
+                
+        }
+    })
+        
+
+            
+    
+                
+            
+
+            // Add a click event listener to the "Place Order" button
+            // placeOrderButton.addEventListener('click', function (event) {
+            //     event.preventDefault();
+            //     const paymentOption = document.querySelector('input[name="payment_option"]:checked').value;
+
+                
+                    // Make the fetch request to create a new orderId
+                    
+                 
+              
+        
+
 
 
 

@@ -50,7 +50,11 @@
 								</ul>
 							</li>
 							<li class="nav-item"><a class="nav-link" href="/account">Account</a></li>
-							<li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+							<%if(userData){%>
+								<li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+							<%}else{%>
+								<li class="nav-item"><a class="nav-link" href="/">Login</a></li>
+							<%}%>
 
 						</ul>
 						<ul class="nav navbar-nav navbar-right">
@@ -189,10 +193,13 @@
         <button onclick="incrementQuantity()" class="increase items-count" type="button"><i class="lnr lnr-chevron-up"></i></button>
         <button onclick="decrementQuantity()" class="reduced items-count" type="button"><i class="lnr lnr-chevron-down"></i></button>
     </div>
-    <div class="card_area d-flex align-items-center">
-        <button class="primary-btn">Add to Cart</button>
-        <button type="submit" class="icon_btn"><i class="lnr lnr lnr-heart"></i></button>
-    </div>
+	<div class="card_area">
+		<button class="primary-btn" style="border:none">Add to Cart</button>
+		<i class="lnr lnr-heart lnr-2x"></i>
+	</div>
+	
+
+	
     <div>
         <p><%= product.Description %></p>
     </div>

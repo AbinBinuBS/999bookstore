@@ -48,8 +48,13 @@
 								</ul>
 							</li>
 							<li class="nav-item"><a class="nav-link" href="/account">Account</a></li>
-							<li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
-
+							<% if (user && user._id) { %>
+								<li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+							<% } else { %>
+								<li class="nav-item"><a class="nav-link" href="/">Login</a></li>
+							<% } %>
+							
+							
 						</ul>
 						<ul class="nav navbar-nav navbar-right">
 							<li class="nav-item"><a href="/cart" class="cart"><span class="ti-bag"></span></a></li>
@@ -186,7 +191,7 @@
 										<div class="overlay"></div>
 										
 										<img class="img-fluid w-100" src="/productimages/<%=activeCategories[i].Image%>" alt="">
-										<a href="/productList?id=<%=activeCategories[i]._id%>" >
+										<a href="/bookList?id=<%=activeCategories[i]._id%>" >
 											<div class="deal-details">
 												<h6 class="deal-title"><%=activeCategories[i].Name%></h6>
 											</div>
@@ -224,7 +229,7 @@
 							
 							<div class="col-lg-3 col-md-6 ">
 								<div class="single-product">
-									<a href="/product?id=<%= newProduct[i]._id %>&category=<%= newProduct[i].Category %>">
+									<a href="/product?id=<%= newProduct[i]._id %>">
 										<img class="img-fluid" src="/productimages/<%= Array.isArray(newProduct[i].Image) && newProduct[i].Image.length > 0 ? newProduct[i].Image[0] : 'defaultImage.jpg' %>"  alt="">
 									</a>
 									<div class="product-details " >
@@ -544,7 +549,7 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
 	
 	<script>
 		function sendToCart(parameter, event) {
-			event.preventDefault(); // Prevent default link behavior
+			event.preventDefault(); 
 	
 			function sendGetRequest(param) {
 				const url = '/addtocart?' + new URLSearchParams({ id: param });
