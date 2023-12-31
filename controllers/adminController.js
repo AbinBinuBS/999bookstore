@@ -7,6 +7,7 @@ const Banner = require('../models/bannerModel')
 const bcrypt = require('bcrypt')
 const express = require('express')
 const app = express();
+const sharp = require('sharp')
 app.use(express.urlencoded({extended:true}))
 
 
@@ -557,7 +558,15 @@ const EditCoupon =  async (req,res)=>{
 
 
 // ============================Banner===============================
-
+const banneranagement = async (req,res)=>{
+    try{
+        const bannerData = await Banner.find()
+        console.log("bannerData",bannerData);
+       res.render('banner',{bannerData:bannerData})
+    }catch(error){
+        console.log(error.message)
+    }
+}
 
 const loadAddBanner = async (req,res)=>{
     try{
@@ -570,8 +579,24 @@ const loadAddBanner = async (req,res)=>{
 
 const addBanner = async (req,res)=>{
     try{
-        const images = req.files.map(file => file.filename);
-        
+        let images
+        const tickOption = req.body.tickOption
+        if(tickOption=="yes"){
+            console.log("i am in true");
+             images = [];
+            for (const file of req.files) {
+                const resizedImg = `resized_${file.filename}`;
+                await sharp(file.path)
+                    .resize({ width: 470, height: 470 })
+                    .toFile(`public/bannerimages/${resizedImg}`);
+
+                images.push(resizedImg);
+            }
+        }else{
+            console.log("i am in else");
+             images = req.files.map(file => file.filename);
+        }
+            
         const Data = new Banner({
             Name:req.body.bannername,
             Text:req.body.text,
@@ -586,9 +611,41 @@ const addBanner = async (req,res)=>{
     }
 }
 
+const blockBanner = async (req,res)=>{
+    try{
+        id=req.body.couponId
+        const currentDate = new Date();
+        const bannerExpiryDate = await Banner.findById({_id:id})
+        const is_active =req.body.is_active
+        
+            if (bannerExpiryDate.expiryDate > currentDate) {
+                let changeStatus 
+                if(is_active==1){
+                    changeStatus=0;
+                }else{
+                    changeStatus=1;
+                }
+                const couponData = await Banner.findOneAndUpdate({_id:id},{$set:{is_active:changeStatus}})
+                res.status(200).json({ message: "Success" });
+                console.log("i am here at if")
+            }else{
+                res.status(500).json({ message: "Failed"});
+                console.log("i am here at else")
 
+            }  
+    }catch(error){
+        console.log(error.message);
+    }
+}
 
-
+const editBanner =  async (req,res)=>{
+    try{
+        
+       
+    }catch(error){
+        console.log(error.message)
+    }
+}
 
 
 // ==========================End of Banner=================================
@@ -626,8 +683,11 @@ module.exports = {
     updateCouponStatus,
     loadEditCoupon,
     EditCoupon,
+    banneranagement,
     loadAddBanner,
-    addBanner    
+    addBanner,
+    blockBanner,
+    editBanner  
 
 
     
