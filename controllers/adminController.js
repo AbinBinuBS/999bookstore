@@ -3,6 +3,7 @@ const Product = require('../models/productModel')
 const Category = require('../models/categoryModel')
 const Order = require('../models/orderModel')
 const Coupon = require('../models/couponModal')
+const Banner = require('../models/bannerModel')
 const bcrypt = require('bcrypt')
 const express = require('express')
 const app = express();
@@ -550,7 +551,47 @@ const EditCoupon =  async (req,res)=>{
 }
 
 
+
+
 // ============================end of coupon================================
+
+
+// ============================Banner===============================
+
+
+const loadAddBanner = async (req,res)=>{
+    try{
+        res.render('add-banner')
+    }catch(error){
+        console.log(error.message)
+    }
+}
+
+
+const addBanner = async (req,res)=>{
+    try{
+        const images = req.files.map(file => file.filename);
+        
+        const Data = new Banner({
+            Name:req.body.bannername,
+            Text:req.body.text,
+            Target:req.body.target,
+            expiryDate:req.body.date,
+            Image:images
+        })
+        await Data.save()
+        res.redirect('/admin/addbanner')
+    }catch(error){
+        console.log(error.message)
+    }
+}
+
+
+
+
+
+
+// ==========================End of Banner=================================
 
 
 
@@ -584,8 +625,9 @@ module.exports = {
     addCoupons,
     updateCouponStatus,
     loadEditCoupon,
-    EditCoupon
-    
+    EditCoupon,
+    loadAddBanner,
+    addBanner    
 
 
     

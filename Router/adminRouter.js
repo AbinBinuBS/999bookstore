@@ -69,6 +69,9 @@ admin_route.post('/coupon',adminController.addCoupons)
 admin_route.post('/updateCouponStatus',adminController.updateCouponStatus)
 admin_route.get('/editCoupon',adminController.loadEditCoupon)
 admin_route.post('/editCoupon',adminController.EditCoupon)
+admin_route.get('/addbanner',adminController.loadAddBanner)
+admin_route.post('/addbanner',upload.single('image'),adminController.addBanner)
+
 
 
 

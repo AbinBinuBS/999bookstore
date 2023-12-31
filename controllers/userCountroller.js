@@ -724,19 +724,52 @@ const checkoutOrder = async(req,res)=>{
 
 const applycoupons = async (req, res) => {
     try {
-        const couponcode = req.body.couponcode
-        const amount = req.body.totalAmount
-        const couponData = await Coupon.findOne({couponCode:couponcode,is_active:1})
-        if(couponData.minPurchase<amount){
-            return res.status(200).json({ message: "Success",Discount:couponData.Discount }); 
-        }else{
-            return res.status(500).json({ message: "Coupon is not applicable for this product...!" });
+        const id = req.session.user_id;
+        const userData = await User.findById(id);
+        const couponcode = req.body.couponcode;
+        const amount = req.body.totalAmount;
+        const couponData = await Coupon.findOne({ couponCode: couponcode, is_active: 1 });
+
+        let count = 0;
+        for (let redeemUser of couponData.redeemUser) {
+            if (redeemUser.userId.equals(userData._id)) {
+                count++;
+            }
+        }
+
+        if (couponData.minPurchase < amount) {
+            if (count < couponData.Limit) {
+                return res.status(200).json({
+                    message: "Success",
+                    Discount: couponData.Discount,
+                    couponCode: couponcode
+                });
+            } else {
+                return res.status(400).json({ message: "Coupon limit exceeded" });
+            }
+        } else {
+            return res.status(403).json({ message: "Coupon is not applicable for this product" });
         }
     } catch (error) {
         console.log(error.message);
         return res.status(500).json({ message: "Internal server error" });
     }
 };
+const pushingCoupon = async (req,res)=>{
+    try{
+        const userId=req.session.user_id
+        const couponName = req.body.couponData
+        const updatedCoupon = await Coupon.findOneAndUpdate(
+            { couponCode: couponName },
+            { $push: { 'redeemUser': { userId: userId } } },
+            { new: true } 
+        );
+        console.log("i am updatedCoupon",updatedCoupon)
+        console.log("i am couponName",couponName)
+    }catch(error){
+        console.log(error.message)
+    }
+}
 
 
 
@@ -846,7 +879,6 @@ const paymentManagement = async (req,res)=>{
            
         });
         await order.save()
-        console.log(uniqueNumber)
 
         if (cartData && cartData.product) {
             for (const item of cartData.product) {
@@ -1203,6 +1235,7 @@ module.exports = {
     quantityCheck,
     checkoutOrder,
     applycoupons,
+    pushingCoupon,
     checkoutaddress,
     showeditaddress,
     editaddress,
