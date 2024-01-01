@@ -560,8 +560,13 @@ const EditCoupon =  async (req,res)=>{
 // ============================Banner===============================
 const banneranagement = async (req,res)=>{
     try{
+        const currentDate = new Date();
         const bannerData = await Banner.find()
-        console.log("bannerData",bannerData);
+        for (const  banner of bannerData) {
+            if (banner.expiryDate <= currentDate) {
+                await Banner.findByIdAndUpdate(banner._id, { is_active: 0 });
+            }
+        }
        res.render('banner',{bannerData:bannerData})
     }catch(error){
         console.log(error.message)
@@ -582,18 +587,16 @@ const addBanner = async (req,res)=>{
         let images
         const tickOption = req.body.tickOption
         if(tickOption=="yes"){
-            console.log("i am in true");
              images = [];
             for (const file of req.files) {
                 const resizedImg = `resized_${file.filename}`;
                 await sharp(file.path)
-                    .resize({ width: 470, height: 470 })
+                    .resize({ width: 900, height: 900 })
                     .toFile(`public/bannerimages/${resizedImg}`);
 
                 images.push(resizedImg);
             }
         }else{
-            console.log("i am in else");
              images = req.files.map(file => file.filename);
         }
             
@@ -605,7 +608,7 @@ const addBanner = async (req,res)=>{
             Image:images
         })
         await Data.save()
-        res.redirect('/admin/addbanner')
+        res.redirect('/admin/banner')
     }catch(error){
         console.log(error.message)
     }
@@ -638,10 +641,89 @@ const blockBanner = async (req,res)=>{
     }
 }
 
-const editBanner =  async (req,res)=>{
+const loadEditBanner =  async (req,res)=>{
     try{
+        id = req.query.bannerId
+        const bannerData = await Banner.findById({_id:id})
+        res.render('editBanner',{bannerData:bannerData}) 
+    }catch(error){
+        console.log(error.message)
+    }
+}
+const editBanner = async (req, res) => {
+    try {
+        let resizedImages = [];        
+        const id = req.body.id;
+        console.log(id);
+        const tickOption = req.body.tickOption
+        let existingImages = [];
+        if(tickOption=="yes"){
+            let existingImages = []; // Initialize existingImages
+
+            const existingBanner = await Banner.findById(id);
+            if (existingBanner && existingBanner.Image) {
+                existingImages = existingBanner.Image || [];
+            }
+            console.log("existingImages", existingImages);
+
+            const newImages = req.files.map(file => file.filename);
+            console.log("newImages", newImages);
+
+            const removedImages = req.body.removedImages || [];
+            console.log("removedImages", removedImages);
+
+            const updatedImages = existingImages
+                .concat(newImages)
+                .filter(img => !removedImages.includes(img));
+            console.log("updatedImages", updatedImages);
+
+
+            for (const file of updatedImages) {
+                const resizedImg = `resized_${file}`;
+                await sharp(`public/bannerimages/${file}`)
+                    .resize({ width: 900, height: 900 })
+                    .toFile(`public/bannerimages/${resizedImg}`);
+
+                resizedImages.push(resizedImg); // Store the resized image filename
+            }
+
+        }else{
+        const existingBanner = await Banner.findById(id);
+        if (existingBanner && existingBanner.Image) {
+            existingImages = existingBanner.Image || [];
+        }
+        console.log("existingImages", existingImages);
+        const newImages = req.files.map(file => file.filename);
+        console.log("newImages",newImages);
+        const removedImages = req.body.removedImages || [];
+        console.log("removedImages",removedImages);
+        resizedImages = existingImages
+            .concat(newImages) 
+            .filter(img => !removedImages.includes(img));
+        console.log("updatedImages",resizedImages);       
+    }
+        // const duplicateDataCount = await Product.countDocuments({
+        //     productName: { $regex: new RegExp(`^${data}$`, 'i') },
+        //     _id: { $ne: id }
+        // });
+        // if(duplicateDataCount>0){
+        //     const bannerData = await Banner.findById({_id:id})
+        //     const categoryData = await Category.find({}) 
+        //     res.render('edit-product',{products:productData,categoryData:categoryData,message:"Already exist...!"})
+        // }else{
+        const updatedData = {
+            Name: req.body.name,
+            Text: req.body.description,
+            Target: req.body.target,
+            expiryDate: req.body.date,
+            Image: resizedImages,
+        };
+        console.log("body:",req.body)
         
-       
+        const bannerData = await Banner.findByIdAndUpdate(id, updatedData, { new: true });
+        res.redirect('/admin/banner' );
+    // }
+        console.log("body:",req.body)
     }catch(error){
         console.log(error.message)
     }
@@ -687,6 +769,7 @@ module.exports = {
     loadAddBanner,
     addBanner,
     blockBanner,
+    loadEditBanner,
     editBanner  
 
 

@@ -4,6 +4,7 @@ const Category = require('../models/categoryModel')
 const Cart = require('../models/cartModel')
 const Order = require('../models/orderModel')
 const Coupon = require('../models/couponModal')
+const Banner =  require('../models/bannerModel')
 require("dotenv").config();
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
@@ -55,11 +56,12 @@ const sendVerifyMail = async(data)=>{
      
     let mailDetails = {
         from: 'xyz@gmail.com',
-        to: data.email,
+        to: data,
         subject: `ypur otp is:${generatedOTP}`,
-        text: 'Node.js testing mail for GeeksforGeeks',
+        text: 'Your OTP for validation',
         
     };
+    
      
     mailTransporter.sendMail(mailDetails, function(err, data) {
         if(err) {
@@ -70,6 +72,8 @@ const sendVerifyMail = async(data)=>{
         }
     });
 }
+
+
 
 // ==================end of sending mail========================
 
@@ -97,7 +101,7 @@ const insertUser = async(req,res)=>{
         req.session.Data=Data;  
 
         const userEmail = await User.findOne({email:req.body.email})
-
+        console.log(req.session.Data);
         if(userEmail)
         {
             res.render('register',{message:"email already exist.."})
@@ -108,7 +112,7 @@ const insertUser = async(req,res)=>{
              }else{
                 if(Data.password===Data.password1)
                 {
-                    sendVerifyMail(Data)
+                    sendVerifyMail(Data.email)
                     res.render('registerOtp')
                  console.log("1:"+Data.password+Data.password1)
                 }else{
@@ -206,6 +210,8 @@ const verifyLogin = async(req,res)=>{
     }
 }
 
+
+
 // =================end of user login=======================
 
 // ==================logout========================
@@ -227,13 +233,108 @@ const userLogout = async(req,res)=>{
 
 // ======================end of logout=======================
 
+// ======================Forget Password===================
+
+const Loadforgotpassword = async (req,res) =>{
+    try{
+        res.render('forgotpassword')
+    }catch(error){
+        console.log(error.message)
+    }
+}
+
+const forgetPassword = async (req,res)=>{
+    try{
+        const userEmail = await User.findOne({email:req.body.email})
+
+        if(userEmail)
+        {
+            const Data = req.body.email
+            sendVerifyMail(Data)
+            req.session.check=Data
+            res.render('forgetpasswordOtp')
+        }else{
+            res.render('forgotpassword',{message:"email not exist.."})
+        }
+    }catch(error){
+        console.log(error.message)
+    }
+}
+
+const forgetPasswordverifyOtp = async (req,res)=>{
+    try{
+        console.log("session:",req.session.check)
+        const Otp=req.body.otp
+        if(generatedOTP===Otp)
+        {
+            res.render('forgotpasswordcheck')
+        }else{
+            res.render('forgetpasswordOtp',{message:"wrong otp"})
+        }
+    }catch(error){
+        console.log(error.message)
+    }
+}
+
+const forgotPasswordChech = async(req,res)=>{
+    try{
+        const newPass = req.body.password
+        const confirmPass = req.body.password2
+        const email = req.session.check
+        if(newPass==confirmPass){
+            const spassword = await securePassword(newPass)
+            const changePassword =await User.findOneAndUpdate({email:email},{$set:{password:spassword}}) 
+            delete req.session.check
+            req.session.save()
+            res.redirect('/')
+        }else{
+            res.render('forgotpasswordcheck',{message:"new password and confirm password are not equal"})
+        }
+
+        
+    }catch(error){
+        console.log(error.message);
+    }
+}
+const ForgetPasswordresendOtp = async (req,res)=>{
+    try{
+        let Data
+        console.log("i am here")
+        console.log(req.session);
+
+        console.log(req.session.Data.email);
+        if(req.session.Data){
+            Data=req.session.Data.email
+        }else if(req.session.check){
+            Data=req.session.check
+        }
+        
+        sendVerifyMail(Data)
+        return res.status(200).json({message:"succcess"})
+    }catch(error){
+        console.log(error.message);
+    }
+}
+
+
+
+
+
+// ======================End of Forget Password===================
+
+
+
+
+
+
 // =======================Home page==========================
 
 const homePage = async (req, res) => {
     try {
+        const bannerHome1 = await Banner.findOne({Name:"Banner for heme display 1",is_active:1})
+        const bannerHome2 = await Banner.findOne({Name:"Banner for heme display 2",is_active:1})
         const activeCategories = await Category.find({ is_active: '1' }).limit(4);
         const activeCategoryIds = activeCategories.map(category => category._id);
-
         const bestSeller = await Product.find({ Category: { $in: activeCategoryIds } })
             .populate({
                 path: 'Category',
@@ -263,7 +364,9 @@ const homePage = async (req, res) => {
                 bestSeller: bestSeller,
                 dicountProduct: dicountProduct,
                 displayCategory: displayCategory,
-                activeCategories: activeCategories
+                activeCategories: activeCategories,
+                bannerHome1:bannerHome1,
+                bannerHome2:bannerHome2
             });            
         }else{
                 delete req.session.user_id
@@ -278,7 +381,9 @@ const homePage = async (req, res) => {
             bestSeller: bestSeller,
             dicountProduct: dicountProduct,
             displayCategory: displayCategory,
-            activeCategories: activeCategories
+            activeCategories: activeCategories,
+            bannerHome1:bannerHome1,
+            bannerHome2:bannerHome2
         });        
     }
             
@@ -715,7 +820,7 @@ const checkoutOrder = async(req,res)=>{
         id=req.session.user_id
         const userData = await User.findById(id, { address: 1, _id: 0 })
         const CartData = await Cart.findOne({ userId: req.session.user_id }).populate('product.productId');
-        const couponData = await Coupon.find()
+        const couponData = await Coupon.find({is_active:1})
         res.render('checkout',{userData:userData,cartData:CartData,couponData:couponData})
     }catch(error){
         console.log(error.message)
@@ -1225,6 +1330,11 @@ module.exports = {
     userLogin,
     verifyLogin,
     userLogout,
+    Loadforgotpassword,
+    forgetPassword,
+    forgetPasswordverifyOtp,
+    forgotPasswordChech,
+    ForgetPasswordresendOtp,
     homePage,
     productPage ,
     showAllBooks,

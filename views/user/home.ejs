@@ -79,22 +79,24 @@
 	<!-- End Header Area -->
 
 	<!-- start banner Area -->
+		<section class="category-area" >
+			
+				<section class="category-area"  >
+			
+<% if (bannerHome1 && bannerHome1.Image.length > 0){ %>
+	<section class="banner-area" style="background: url('/bannerimages/<%= bannerHome1.Image[0] %>') center no-repeat;background-size: 100%">
+<% } else { %>
 	<section class="banner-area">
+<% } %>
 		<div class="container">
 			<div class="row fullscreen align-items-center justify-content-start">
 				<div class="col-lg-12">
 					<div class="active-banner-slider owl-carousel">
-						<!-- single-slide -->
 						<div class="row single-slide align-items-center d-flex">
 							<div class="col-lg-5 col-md-6">
 								<div class="banner-content text-white">
-									<h1 class="text-white">Nike New <br>Collection!</h1>
-									<p class="text-white">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-										dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation.</p>
-									<div class="add-bag d-flex align-items-center">
-										<a class="add-btn" href=""><span class="lnr lnr-cross"></span></a>
-										<span class="add-text text-uppercase text-white">Add to Bag</span>
-									</div>
+									<h1 class="text-white"> New <br>Books!</h1>
+									<p class="text-white"></p>
 								</div>
 							</div>
 							<div class="col-lg-7"> 
@@ -107,13 +109,8 @@
 						<div class="row single-slide">
 							<div class="col-lg-5">
 								<div class="banner-content text-white">
-									<h1 class="text-white">Nike New <br>Collection!</h1>
-									<p class="text-white">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-										dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation.</p>
-									<div class="add-bag d-flex align-items-center">
-										<a class="add-btn" href=""><span class="lnr lnr-cross"></span></a>
-										<span class="add-text text-uppercase text-white">Add to Bag</span>
-									</div>
+									<h1 class="text-white"> New <br>Books!</h1>
+									<p class="text-white"></p>
 								</div>
 							</div>
 							<div class="col-lg-7">
@@ -179,6 +176,7 @@
 	<!-- end features Area -->
 
 	<!-- Start category Area -->
+	
 	<section class="category-area">
 		<div class="container">
 			<div class="row justify-content-center">
@@ -333,24 +331,31 @@
 				</div>
 			</div>
 		</div>
+		
 
+		
+		
 	</section>
 	<!-- end product Area -->
 
 	<!-- Start exclusive deal Area -->
 	<section class="exclusive-deal-area">
-		<div class="container-fluid">
+		<div class="container-fluid">banner1
 			<div class="row justify-content-center align-items-center">
-				<div class="col-lg-6 no-padding exclusive-left">
-					<div class="row clock_sec clockdiv" id="clockdiv">
-						<div class="col-lg-12">
-							<h1>Exclusive Hot Deal Ends Soon!</h1>
-							<p>Who are in extremely love with eco friendly system.</p>
+				<% if (bannerHome2 && bannerHome2.Image.length > 0){ %>
+					<div class="col-lg-6 no-padding exclusive-left" style="background: url('/bannerimages/<%= bannerHome2.Image[0] %>') center no-repeat;">
+						<div class="row clock_sec clockdiv" id="clockdiv">
+							<div class="col-lg-12">
+								<h1><%= bannerHome2.Text %></h1>
+							</div>
 						</div>
-						
+						<a href="<%= bannerHome2.Target %>" class="primary-btn">Shop Now</a>
 					</div>
-					<a href="" class="primary-btn">Shop Now</a>
-				</div>
+				<% } else { %>
+					<div class="col-lg-6 no-padding exclusive-left">
+				<% } %>
+					
+					
 				
 				<div class="col-lg-6 no-padding exclusive-right">
 					<div class="active-exclusive-product-slider">

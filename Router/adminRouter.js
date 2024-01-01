@@ -63,18 +63,20 @@ admin_route.post('/deletecategory',adminAuth.isLogin,adminController.deleteCateg
 admin_route.get('/order',adminAuth.isLogin,adminController.orderManagement)
 
 admin_route.get('/orderStatus',adminAuth.isLogin,adminController.orderStatus)
-admin_route.get('/vieworders',adminController.viewsorders)
-admin_route.post('/orderstatus',adminController.cancelOrder)
-admin_route.get('/coupon',adminController.couponManagement)
-admin_route.post('/coupon',adminController.addCoupons)
-admin_route.post('/updateCouponStatus',adminController.updateCouponStatus)
-admin_route.get('/editCoupon',adminController.loadEditCoupon)
-admin_route.post('/editCoupon',adminController.EditCoupon)
-admin_route.get('/banner',adminController.banneranagement)
-admin_route.get('/addbanner',adminController.loadAddBanner)
-admin_route.post('/addbanner',bannerUplods.array('image',5),adminController.addBanner)
-admin_route.post('/updateBannerStatus',adminController.blockBanner)
-admin_route.post('/editBanner',adminController.editBanner)
+admin_route.get('/vieworders',adminAuth.isLogin,adminController.viewsorders)
+admin_route.post('/orderstatus',adminAuth.isLogin,adminController.cancelOrder)
+admin_route.get('/coupon',adminAuth.isLogin,adminController.couponManagement)
+admin_route.post('/coupon',adminAuth.isLogin,adminController.addCoupons)
+admin_route.post('/updateCouponStatus',adminAuth.isLogin,adminController.updateCouponStatus)
+admin_route.get('/editCoupon',adminAuth.isLogin,adminController.loadEditCoupon)
+admin_route.post('/editCoupon',adminAuth.isLogin,adminController.EditCoupon)
+admin_route.get('/banner',adminAuth.isLogin,adminController.banneranagement)
+admin_route.get('/addbanner',adminAuth.isLogin,adminController.loadAddBanner)
+admin_route.post('/addbanner',adminAuth.isLogin,bannerUplods.array('image',5),adminController.addBanner)
+admin_route.post('/updateBannerStatus',adminAuth.isLogin,adminController.blockBanner)
+admin_route.get('/editBanner',adminAuth.isLogin,adminController.loadEditBanner)
+admin_route.post('/editBanner',adminAuth.isLogin,bannerUplods.array('image',5),adminController.editBanner)
+
 
 
 

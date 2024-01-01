@@ -32,7 +32,7 @@
         </div>
         <nav>
             <ul class="menu-aside">
-                <li class="menu-item">
+                <li class="menu-item ">
                     <a class="menu-link" href="/admin/dashboard"> <i class="icon material-icons md-home"></i>
                         <span class="text">Dashboard</span>
                     </a>
@@ -52,9 +52,10 @@
                     </a>
                     <div class="submenu">
                         <a href="/admin/order">Order list </a>
+                        
                     </div>
                 </li>
-                <li class="menu-item has-submenu ">
+                <li class="menu-item has-submenu">
                     <a class="menu-link" href="page-sellers-cards.html"> <i class="icon material-icons md-store"></i>
                         <span class="text">Category</span>
                     </a>
@@ -62,30 +63,29 @@
                         <a href="/admin/category">Category List</a>
                     </div>
                 </li>
-                <li class="menu-item has-submenu ">
+                <li class="menu-item has-submenu">
                     <a class="menu-link" href="page-form-product-1.html"> <i class="icon material-icons md-add_box"></i>
-                        <span class="text">User</span>
+                        <span class="text">Users</span>
                     </a>
-                    <div class="submenu active">
-                        <a href="/admin/customer" class="active">Users List</a>
+                    <div class="submenu">
+                        <a href="/admin/customer">Users List</a>
                     </div>
                 </li>
                 <li class="menu-item has-submenu active">
                     <a class="menu-link" href="page-transactions-1.html"> <i class="icon material-icons md-monetization_on"></i>
-                        <span class="text" >Coupon</span>
+                        <span class="text">Coupon</span>
                     </a>
-                    <div class="submenu active">
-                        <a href="/admin/coupon">Coupons List</a>
+                    <div class="submenu">
+                        <a href="/admin/coupon">Coupon List</a>
                     </div>
                 </li>
                 <li class="menu-item has-submenu">
                     <a class="menu-link" href="#"> <i class="icon material-icons md-person"></i>
-                        <span class="text">Account</span>
+                        <span class="text">Banner Management</span>
                     </a>
                     <div class="submenu">
-                        <a href="page-account-login.html">User login</a>
-                        <a href="page-account-register.html">User registration</a>
-                        <a href="page-error-404.html">Error 404</a>
+                        <a href="/admin/banner">Banner List</a>
+                        <a href="/admin/addbanner">Add Banner </a>
                     </div>
                 </li>
                 <li class="menu-item">
@@ -196,11 +196,14 @@
                             <h4>Basic</h4>
                         </div>
                         <div class="card-body">
-                            <form action="" method="post">
+                            <form action="/admin/editCoupon" method="post" onsubmit="return validateForm()">
+                                <!-- Coupon Name -->
                                 <div class="mb-4">
-                                    <label for="product_name" class="form-label">Coupon Name</label>
-                                    <input type="text" name="couponname" value="<%=couponData.couponCode%>"  class="form-control" id="couponname">
+                                    <label for="couponname" class="form-label">Coupon Name</label>
+                                    <input type="text" name="couponname" value="<%=couponData.couponCode%>" class="form-control" id="couponname">
+                                    <div id="couponNameError" class="error" style=" color: red; display: none;"></div>
                                 </div>
+                            
                                 <div class="mb-3">
                                     <label for="couponDate" class="form-label">Expiry Date</label>
                                     <%const newDate = new Date(couponData.expiryDate)%>
@@ -209,34 +212,126 @@
                                     <%const day = newDate.getDate()%>
                                     <%const formattedDate = `${year}-${month<10?0:''}${month}-${day<10?0:''}${day}`%>
                                     <input type="date" name="expdate" value="<%=formattedDate%>" class="form-control" id="couponDate">
+                                    <div id="expiryDateError" class="error" style=" color: red; display: none;"></div>
                                 </div>
-                                <div class="row">
-                                    <div class="col-lg-4">
-                                        <div class="mb-4">
-                                            <label class="form-label">Flat Discount</label>
-                                            <div class="row gx-2">
-                                                <input name="discount"  value="<%=couponData.Discount%>" type="number" id="discount" class="form-control">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <div class="mb-4">
-                                            <label class="form-label">Limit</label>
-                                            <input type="number" value="<%=couponData.Limit%>" name="limit" class="form-control" id="limit">
-                                            <input type="hidden" value="<%=couponData._id%>" name="id">
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <div class="mb-4">
-                                            <label class="form-label">Minimum Purchase</label>
-                                            <input type="number" value="<%=couponData.minPurchase%>" name="minPurchase" class="form-control" id="minPurchase">
-                                        </div>
-                                    </div>
+                            
+                                <!-- Flat Discount -->
+                                <div class="mb-4">
+                                    <label class="form-label">Flat Discount</label>
+                                    <input name="discount" value="<%=couponData.Discount%>" type="text" id="discount" class="form-control">
+                                    <div id="discountError" class="error" style=" color: red; display: none;"></div>
                                 </div>
+                            
+                                <!-- Limit -->
+                                <div class="mb-4">
+                                    <label class="form-label">Limit</label>
+                                    <input type="text" value="<%=couponData.Limit%>" name="limit" class="form-control" id="limit">
+                                    <input type="hidden" value="<%=couponData._id%>" name="id">
+                                    <div id="limitError" class="error" style=" color: red; display: none;"></div>
+                                </div>
+                            
+                                <!-- Minimum Purchase -->
+                                <div class="mb-4">
+                                    <label class="form-label">Minimum Purchase</label>
+                                    <input type="text" value="<%=couponData.minPurchase%>" name="minPurchase" class="form-control" id="minPurchase">
+                                    <div id="minPurchaseError" class="error" style=" color: red; display: none;"></div>
+                                </div>
+                            
                                 <div class="text-center mt-4">
-                                    <button class="btn btn-primary">Submit</button>
-                                </div>                                
+                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                </div>
                             </form>
+                            <script>
+                                function validateForm() {
+                                    let isValid = true;
+                            
+                                    const couponName = document.getElementById('couponname');
+                                    const couponDate = document.getElementById('couponDate');
+                                    const discount = document.getElementById('discount');
+                                    const limit = document.getElementById('limit');
+                                    const minPurchase = document.getElementById('minPurchase');
+                            
+                                    const couponNameError = document.getElementById('couponNameError');
+                                    const expiryDateError = document.getElementById('expiryDateError');
+                                    const discountError = document.getElementById('discountError');
+                                    const limitError = document.getElementById('limitError');
+                                    const minPurchaseError = document.getElementById('minPurchaseError');
+                            
+                                    if (couponName.value.trim() === '') {
+                                        couponNameError.innerText = 'Coupon Name is required';
+                                        couponNameError.style.display = 'block';
+                                        isValid = false;
+                                    } else {
+                                        couponNameError.style.display = 'none';
+                                    }
+                            
+                                    // Validation for expiry date (dummy validation)
+                                    if (couponDate.value === '') {
+                                        expiryDateError.innerText = 'Expiry Date is required';
+                                        expiryDateError.style.display = 'block';
+                                        isValid = false;
+                                    } else {
+                                        expiryDateError.style.display = 'none';
+                                    }
+                            
+                                    // Validation for discount (dummy validation)
+                                    if (discount.value.trim() === '') {
+                                        discountError.innerText = 'Flat Discount is required';
+                                        discountError.style.display = 'block';
+                                        isValid = false;
+                                    } else if (isNaN(discount.value)) {
+                                        discountError.innerText = 'Flat Discount must be a number';
+                                        discountError.style.display = 'block';
+                                        isValid = false;
+                                    } else if (parseFloat(discount.value) < 0) {
+                                        discountError.innerText = 'Flat Discount cannot be negative';
+                                        discountError.style.display = 'block';
+                                        isValid = false;
+                                    } else {
+                                        discountError.style.display = 'none';
+                                    }
+                            
+                                    // Validation for limit (dummy validation)
+                                    if (limit.value.trim() === '') {
+                                        limitError.innerText = 'Limit is required';
+                                        limitError.style.display = 'block';
+                                        isValid = false;
+                                    } else if (isNaN(limit.value)) {
+                                        limitError.innerText = 'Limit must be a number';
+                                        limitError.style.display = 'block';
+                                        isValid = false;
+                                    } else if (parseFloat(limit.value) < 0) {
+                                        limitError.innerText = 'Limit cannot be negative';
+                                        limitError.style.display = 'block';
+                                        isValid = false;
+                                    } else {
+                                        limitError.style.display = 'none';
+                                    }
+                            
+                                    // Validation for min purchase (dummy validation)
+                                    if (minPurchase.value.trim() === '') {
+                                        minPurchaseError.innerText = 'Minimum Purchase is required';
+                                        minPurchaseError.style.display = 'block';
+                                        isValid = false;
+                                    } else if (isNaN(minPurchase.value)) {
+                                        minPurchaseError.innerText = 'Minimum Purchase must be a number';
+                                        minPurchaseError.style.display = 'block';
+                                        isValid = false;
+                                    } else if (parseFloat(minPurchase.value) < 0) {
+                                        minPurchaseError.innerText = 'Minimum Purchase cannot be negative';
+                                        minPurchaseError.style.display = 'block';
+                                        isValid = false;
+                                    } else if (parseFloat(minPurchase.value) < parseFloat(discount .value)) {
+                                    minPurchaseError.innerText = 'Minimum Purchase cannot be less than Discound';
+                                    minPurchaseError.style.display = 'block';
+                                    isValid = false;
+                                    } else {
+                                        minPurchaseError.style.display = 'none';
+                                    }
+                            
+                                    return isValid;
+                                }
+                            </script>
                         </div>
                     </div> <!-- card end// -->
                    

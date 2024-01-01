@@ -108,102 +108,107 @@
 
 					<div class="login_form_inner">
 						<form class="row login_form" action="/verifyOtp" method="post" id="contactForm" novalidate="novalidate">
-							<!-- Other form fields -->
 							<div class="col-md-12 form-group">
-								<input type="text" class="form-control" id="otp" name="otp" placeholder="Enter OTP" required>
+								<input type="text" class="form-control" id="otpInput" name="otp" placeholder="Enter OTP" required>
 								<span class="error-message" id="otp-error"></span>
 							</div>
-							<!-- <div class="col-md-12 form-group">
-								<span id="otpTimer"></span>
-								<button type="button" id="resendButton" onclick="resendOTP()" class="secondary-btn" style="display: none;">Resend OTP</button>
-							</div> -->
 							<div class="col-md-12 form-group">
 								<% if(typeof message !== 'undefined') { %>
 									<p style="color:green"><%= message %></p>
 								<% } %>
 							</div>
 							<div class="col-md-12 form-group">
-								<button type="submit" value="submit" class="primary-btn">Log In</button>
+								<button type="submit" value="submit" class="primary-btn" id="verify-button">Verify OTP</button>
 							</div>
 						</form>
+						<div class="resend-container">
+							<button id="resendButton" class="primary-btn" style="display: none; border:none">Resend OTP</button>
+						</div>
+						<div id="countdown">30 seconds</div>
+						<style>
+							.login_form_inner {
+    /* Your existing styles for login_form_inner */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center content horizontally */
+    text-align: center; /* Center text content */
+}
+
+.resend-container {
+    margin-top: 10px; /* Adjust spacing as needed */
+}
+
+						</style>
 						<script>
-// 							// Automatically start the timer when the page loads or gets a GET request
-// 							startOTPTimer();
-					
-// 							// Function to start the OTP timer
-// 							function startOTPTimer() {
-// 								// Start the countdown timer
-// 								let countdown = 60; // Countdown in seconds
-					
-// 								document.getElementById('resendButton').style.display = 'none';
-// 								document.getElementById('otpTimer').innerText = `Resend OTP in ${countdown} seconds`;
-					
-// 								const timer = setInterval(function () {
-// 									countdown--;
-// 									if (countdown <= 0) {
-// 										clearInterval(timer);
-// 										document.getElementById('resendButton').style.display = 'inline-block';
-// 										document.getElementById('otpTimer').innerText = 'Resend OTP';
-// 									} else {
-// 										document.getElementById('otpTimer').innerText = `Resend OTP in ${countdown} seconds`;
-// 									}
-// 								}, 10);
-// 							}
-					
-// 							// Function to resend OTP (this can be triggered by a button click or other event)
-// 							function resendOTP() {
-//     countdown = 60; // Reset the countdown
-//     startOTPTimer(); // Restart the timer
+						let remainingTime = parseInt(localStorage.getItem('remainingTime')) || 30;
+						let countdownInterval;
 
-//     // Add your POST request logic here (using fetch)
-//     fetch('/logo', {
-//         method: 'POST',
-//         headers: {
-//             'Content-Type': 'application/json',
-//             // Add any other headers if required
-//         },
-//         body: JSON.stringify({ /* Add your POST request body if needed */ }),
-//     })
-//     .then(response => {
-//         if (response.ok) {
-//             // Handle success
-//         } else {
-//             // Handle failure
-//         }
-//     })
-//     .catch(error => {
-//         // Handle errors if fetch fails
-//     });
-// }
+						function updateCountdown(remainingTime) {
+							const countdownElement = document.getElementById('countdown');
+							countdownElement.textContent = `${remainingTime} seconds`;
+						}
 
+						function startCountdown() {
+							hideResendButton(); // Hide the resend button when the countdown starts
+							countdownInterval = setInterval(() => {
+								remainingTime--;
 
-// 						</script>
-					</div>
-					
-						
-						
-
-
-						<!-- <h3>Enter your otp</h3>
-						<form class="row login_form" action="/verifyOtp" method="post" id="contactForm" >
-							<div class="col-md-12 form-group">
-								<input type="text" class="form-control" id="name" name="otp" placeholder="otp" onfocus="this.placeholder = ''" onblur="this.placeholder = 'otp'">
-                            </div>
-							<div class="col-md-12 form-group">
-								<% 
-								if(typeof message!=='undefined')
-								{
-									%>
-									<p style="color:grren"><%=message%></p>
-									<%
+								if (remainingTime <= 0) {
+									clearInterval(countdownInterval);
+									showResendButton();
+								} else {
+									updateCountdown(remainingTime);
 								}
-								%>
-							</div>
-							<div class="col-md-12 form-group">
-								<button type="submit" value="submit" class="primary-btn">Log In</button>
+							}, 1000);
+						}
+
+						function showResendButton() {
+							document.getElementById('resendButton').style.display = 'block';
+							document.getElementById('otpInput').style.display = 'none';
+							document.getElementById('countdown').style.display = 'none';
+							document.getElementById('timeM').style.display = 'none';
+							document.getElementById('verify-button').style.display = 'none';
+							document.querySelector('input[name="otp"]').style.display = 'none';
+						}
+
+						function hideResendButton() {
+							document.getElementById('resendButton').style.display = 'none';
+						}
+
+						window.onbeforeunload = function () {
+							localStorage.setItem('remainingTime', remainingTime.toString());
+						};
+
+						document.getElementById('resendButton').addEventListener('click', function () {
+							remainingTime = 30;
+
+							fetch('/resendOtp', {
+								method: 'POST',
 								
-							</div>
-						</form> -->
+							})
+							.then(response => {
+								if (response.ok) {
+									startCountdown()
+									console.log('Resend OTP request sent successfully');
+								} else {
+									console.error('Failed to resend OTP');
+								}
+							})
+							.catch(error => {
+								console.error('Error occurred while resending OTP:', error);
+							});
+
+							
+							document.getElementById('otpInput').style.display = 'block';
+							document.getElementById('countdown').style.display = 'block';
+							document.getElementById('timeM').style.display = 'block';
+							document.getElementById('verify-button').style.display = 'block';
+							document.querySelector('input[name="otp"]').style.display = 'block';
+						});
+
+						window.onload = startCountdown;
+						</script>		
+					</div>
 					</div>
 				</div>
 			</div>
