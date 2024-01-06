@@ -547,14 +547,13 @@ document.addEventListener("DOMContentLoaded", function() {
                                         const price = parseFloat(priceText); // Convert text to number
                                         totalSum += price;
                                     });
-                                    return totalSum.toFixed(2); // Return total sum rounded to 2 decimal places
+                                    return totalSum.toFixed(2); 
                                 }
                             
-                                // Display total sum in the 'totalSum' element
                                 function displayTotalSum(total) {
                                 const totalSumElement = document.getElementById('totalSum');
                                 if (totalSumElement) {
-                                    totalSumElement.textContent = total; // Set the total sum value
+                                    totalSumElement.textContent = total;
                                 }
                                 }
                                 function checkCouponData() {
@@ -565,32 +564,28 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 }
 
-// Call the function to set coupon data on page load
 checkCouponData();
 
-// Function to remove applied coupon
 function removeAppliedCoupon() {
     const storedCouponCode = localStorage.getItem('couponCode');
 
     if (storedCouponCode) {
-        localStorage.removeItem('couponCode'); // Remove coupon code from localStorage
-        localStorage.removeItem('couponValue'); // Remove applied coupon value
+        localStorage.removeItem('couponCode'); 
+        localStorage.removeItem('couponValue'); 
 
         const couponValueElement = document.getElementById('couponValue');
         if (couponValueElement) {
-            couponValueElement.textContent = ''; // Reset displayed coupon value
+            couponValueElement.textContent = '';
         }
 
         const couponDataElement = document.getElementById('coupondata');
         if (couponDataElement) {
-            couponDataElement.textContent = ''; // Reset displayed coupon data
+            couponDataElement.textContent = ''; 
         }
 
-        // Reset the total amount
-        const initialTotalAmount = calculateTotalSum(); // Calculate initial total sum
-        displayTotalSum(initialTotalAmount); // Set total sum to the initial value
+        const initialTotalAmount = calculateTotalSum(); 
+        displayTotalSum(initialTotalAmount);
 
-        // Additional actions as needed...
 
         Swal.fire({
             title: 'Coupon Removed!',
@@ -600,28 +595,26 @@ function removeAppliedCoupon() {
             confirmButtonText: 'OK'
         }).then((result) => {
             if (result.isConfirmed) {
-                location.reload(); // Reload the page on OK button press
+                location.reload(); 
             }
         });
     }
 }
 
-// Function to handle displaying the remove coupon button if a coupon is applied
 function displayRemoveCouponButton() {
     const storedCouponValue = localStorage.getItem('couponValue');
     const removeCouponBtn = document.getElementById('removeCouponBtn');
     if (storedCouponValue && removeCouponBtn) {
-        removeCouponBtn.style.display = 'inline-block'; // Show "Remove Coupon" button if coupon data exists
+        removeCouponBtn.style.display = 'inline-block';
     } else {
-        removeCouponBtn.style.display = 'none'; // Hide "Remove Coupon" button if no coupon data exists
+        removeCouponBtn.style.display = 'none';
     }
 }
 
-// Call the function to display the remove coupon button based on coupon application status
 displayRemoveCouponButton();
 
-                                // Apply Coupon and update total sum
-                                function applyCoupon() {
+                           
+    function applyCoupon() {
     const couponCode = document.getElementById('couponInput').value;
     let totalAmount = parseFloat(calculateTotalSum());
 
@@ -651,11 +644,11 @@ displayRemoveCouponButton();
 
             const couponDataElement = document.getElementById('coupondata');
             if (couponDataElement) {
-                couponDataElement.textContent = couponCode; // Set the applied coupon code in the 'coupondata' span
+                couponDataElement.textContent = couponCode; 
             }
 
-            totalAmount -= data.Discount; // Subtract discount from totalAmount
-            displayTotalSum(totalAmount.toFixed(2)); // Update the displayed total
+            totalAmount -= data.Discount; 
+            displayTotalSum(totalAmount.toFixed(2)); 
             displayRemoveCouponButton();
 
             Swal.fire({
@@ -666,25 +659,22 @@ displayRemoveCouponButton();
                 confirmButtonText: 'OK'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    location.reload(); // Reload the page on OK button press
+                    location.reload();
                 }
             });
 
             localStorage.setItem('couponValue', data.Discount);
             localStorage.setItem('totalAmount', totalAmount.toFixed(2));
-            localStorage.setItem('couponCode', couponCode); // Store applied coupon code in localStorage
+            localStorage.setItem('couponCode', couponCode); 
         } else {
-            // Handle other cases if needed
             Swal.fire('Error!', data.message || 'Failed to apply coupon.', 'error');
         }
     })
     .catch(error => {
-        // Handle errors if the request fails
         console.error('Error:', error);
         Swal.fire('Error!', 'Coupon is not applicable for this product or Coupon limit exceeded.', 'error');
     });
 }
-    // Initial display of total sum (code remains unchanged)
     const storedCouponValue = localStorage.getItem('couponValue');
     const storedTotalAmount = localStorage.getItem('totalAmount');
     if (storedCouponValue && storedTotalAmount) {
@@ -821,7 +811,6 @@ displayRemoveCouponButton();
                     fetch('/onlinepayment', requestOptions)
                         .then(response => {
                             if (!response.ok) {
-                                console.log("Response issue");
                                 throw new Error(`HTTP error! Status: ${response.status}`);
                             }else{
                                 console.log("Response issue");
@@ -831,12 +820,20 @@ displayRemoveCouponButton();
                             
                         })
                         .then(data => {
-                            console.log(data.razorOrderId)
-                            const orderId = data.razorOrderId;
-                            const paymentStatus = data.paymentStatus;
-                            // Assuming you have paymentStatus in the response
-                            // Call the initiatePayment function with the orderId and selectedAddressId
-                            initiatePayment(orderId, paymentStatus);
+                            if(data.message == 'Order placed successfully.'){
+                                console.log(data.razorOrderId)
+                                const orderId = data.razorOrderId;
+                                const paymentStatus = data.paymentStatus;
+                                initiatePayment(orderId, paymentStatus);
+                            }else{
+                                Swal.fire({
+                                title: 'Error!',
+                                html: `<p>The book <strong>${data.product}</strong> is out of stock.</p>`,
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                                });
+                            }
+                            
                         })
                         .catch(error => {
                             console.error("Fetch error:", error);
@@ -859,13 +856,20 @@ displayRemoveCouponButton();
                         }).then(data=>{
                             if(data.message=="success"){
                                 afterPaymentSuccess()
-                            }else{
+                            }else if(data.message=="failed"){
                                 Swal.fire({
                                  title: 'Insufficient Wallet Balance',
                                 text: 'You do not have enough money in your wallet.',
                                 icon: 'error',
                                 confirmButtonText: 'OK'
                             })
+                            }else{
+                                Swal.fire({
+                                title: 'Error!',
+                                html: `<p>The book <strong>${data.product}</strong> is out of stock.</p>`,
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
                             }
                         })
                         
@@ -878,63 +882,6 @@ displayRemoveCouponButton();
             
             }
         })
-        // function afterPaymentSuccess(){
-        //     fetch('/proceedtoPayment', {
-        //             method: 'POST',
-        //             headers: {
-        //                 'Content-Type': 'application/json'
-        //             },
-        //             body: JSON.stringify({
-        //                 address: userId,
-        //                 paymentMethod: paymentMethod,
-        //                 totalAmount: totalAmount
-        //             })
-        //         })
-        //         .then(response => {
-        //             if (response.ok) {
-        //                 removeAppliedCoupon()
-        //                 return response.json(); // Parse response JSON if available
-        //             } else {
-        //                 throw new Error('Failed to place the order. Please try again later.');
-        //             }
-        //         }).then(data => {
-        //             if (data && data.message === 'Order placed successfully') {
-        //             // Order placed successfully
-        //             Swal.fire({
-        //                 title: 'Order Placed!',
-        //                 text: 'Your order has been successfully placed.',
-        //                 icon: 'success',
-        //                 showCancelButton: true,
-        //                 showConfirmButton: true,
-        //                 cancelButtonText: 'Continue Shopping',
-        //                 confirmButtonText: 'View Order'
-        //             }).then((result) => {
-        //             if (result.isConfirmed) {
-        //                 window.location.href = '/account'; // Redirect to view order/account
-        //                 // Send a POST request here after redirecting
-        //                 fetch('/couponCheck', {
-        //                 method: 'POST',
-        //                 headers: {
-        //                     'Content-Type': 'application/json',
-        //             },
-        //             body: JSON.stringify({ /* include any necessary data for the POST request */ }),
-        //             })
-        //             .then(response => {
-        //                 // Handle the response as needed
-        //             })
-        //             .catch(error => {
-        //                 // Handle errors if the request fails
-        //                 console.error('Error:', error);
-        //             });
-        //             } else if (result.dismiss === Swal.DismissReason.cancel) {
-        //                 window.location.href = '/home'; // Redirect to continue shopping/home
-        //             }
-        //         });
-        //         }
-        //         })
-        //         // Check if the response contains the success message
-                
-        // }
         function afterPaymentSuccess() {
     const couponData = document.getElementById('coupondata').textContent.trim();
 
@@ -959,7 +906,14 @@ displayRemoveCouponButton();
         }
     })
     .then(data => {
-        if (data && data.message === 'Order placed successfully') {
+        if(data && data.message === 'Out of stock'){
+            Swal.fire({
+                title: 'Error!',
+                html: `<p>The book <strong>${data.product}</strong> is out of stock.</p>`,
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }else if (data && data.message === 'Order placed successfully') {
             Swal.fire({
                 title: 'Order Placed!',
                 text: 'Your order has been successfully placed.',
@@ -979,14 +933,11 @@ displayRemoveCouponButton();
                             },
                             body: JSON.stringify({
                                 couponData: couponData
-                                /* include any other necessary data for the POST request */
                             }),
                         })
                         .then(response => {
-                            // Handle the response as needed
                         })
                         .catch(error => {
-                            // Handle errors if the request fails
                             console.error('Error:', error);
                         });
                     }

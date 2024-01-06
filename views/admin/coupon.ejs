@@ -192,7 +192,7 @@
             <!-- Modal body -->
             <div class="modal-body">
                 <!-- Coupon form -->
-                <form action="/admin/coupon" method="post" onsubmit="return validateForm()">
+                <form action="" id="addCouponForm" method="post" >
                     <div class="mb-3">
                         <label for="couponName" class="form-label">Coupon Name</label>
                         <input type="text" name="couponname" class="form-control" id="couponName" >
@@ -223,18 +223,61 @@
                         <p id="minPurchaseError" style="color: red; display: none;">Minimum Purchase is required</p>
                     </div>
                     
-                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <button type="button" type="button" onclick="validateForm1()" class="btn btn-primary">Submit</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 </form>
                 
                 <script>
-                    function validateForm() {
+                     function submitForm1(){
+                                    const couponname = document.getElementById('couponName').value
+                                    const couponDate = document.getElementById('couponDate').value
+                                    const discount = document.getElementById('discount').value
+                                    const minPurchase = document.getElementById('minPurchase').value
+                                    const limit = document.getElementById('limit').value
+
+                                    fetch('/admin/coupon',{
+                                        method:'POST',
+                                        headers:{
+                                            'Content-Type':'application/json'
+                                        },
+                                        body:JSON.stringify({
+                                            
+                                            couponname:couponname,
+                                            couponDate:couponDate,
+                                            discount:discount,
+                                            limit:limit,
+                                            minPurchase:minPurchase
+                                            
+                                        })
+                                    })
+                                    .then(res=>{
+                                        if(res.ok){
+                                            return res.json()
+                                        }
+                                    })
+                                    .then(data => {
+                                        if (data.message == 'Success') {
+                                            console.log("success");
+                                            window.location.href = '/admin/coupon';
+                                        }else if(data.message == 'Failed'){
+                                            couponNameError.innerText = 'Coupon Name already exist..!';
+                                            couponNameError.style.display = 'block';
+                                        }
+                                    })
+                                    .catch(err=>{
+                                        console.log(err.message)
+                                    })
+                                }
+
+
+
+                    function validateForm1() {
                         let isValid = true;
                 
                         // Coupon Name validation
                         const couponName = document.getElementById('couponName');
                         const couponNameError = document.getElementById('couponNameError');
-                        if (couponName.value === '') {
+                        if (couponName.value.trim() === '') {
                             couponNameError.style.display = 'block';
                             isValid = false;
                         } else {
@@ -244,7 +287,7 @@
                         // Expiry Date validation
                         const couponDate = document.getElementById('couponDate');
                         const couponDateError = document.getElementById('couponDateError');
-                        if (couponDate.value === '') {
+                        if (couponDate.value.trim() === '') {
                             couponDateError.style.display = 'block';
                             isValid = false;
                         } else {
@@ -254,7 +297,7 @@
                         // Flat Discount validation (required and numeric)
                         const discount = document.getElementById('discount');
                         const discountError = document.getElementById('discountError');
-                        if (discount.value === '') {
+                        if (discount.value.trim() === '') {
                             discountError.innerText = 'Flat Discount is required';
                             discountError.style.display = 'block';
                             isValid = false;
@@ -273,7 +316,7 @@
                         // Limit validation (required and numeric)
                         const limit = document.getElementById('limit');
                         const limitError = document.getElementById('limitError');
-                        if (limit.value === '') {
+                        if (limit.value.trim() === '') {
                             limitError.innerText = 'Limit is required';
                             limitError.style.display = 'block';
                             isValid = false;
@@ -292,7 +335,7 @@
                         // Minimum Purchase validation (required and numeric)
                         const minPurchase = document.getElementById('minPurchase');
                         const minPurchaseError = document.getElementById('minPurchaseError');
-                        if (minPurchase.value === '') {
+                        if (minPurchase.value.trim() === '') {
                             minPurchaseError.innerText = 'Minimum Purchase is required';
                             minPurchaseError.style.display = 'block';
                             isValid = false;
@@ -304,7 +347,7 @@
                             minPurchaseError.innerText = 'Minimum Purchase cannot be negative';
                             minPurchaseError.style.display = 'block';
                             isValid = false;
-                        } else if (parseFloat(minPurchase.value) > parseFloat(discount .value)) {
+                        } else if (parseFloat(minPurchase.value) < parseFloat(discount .value)) {
                             minPurchaseError.innerText = 'Minimum Purchase cannot be less than Discound';
                             minPurchaseError.style.display = 'block';
                             isValid = false;
@@ -312,7 +355,11 @@
                             minPurchaseError.style.display = 'none';
                         }
                 
-                        return isValid;
+                        if(isValid===true){
+                            submitForm1()
+                        }else{
+                            return false
+                        }
                     }
                 </script>
                 

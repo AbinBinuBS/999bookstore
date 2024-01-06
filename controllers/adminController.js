@@ -12,6 +12,286 @@ app.use(express.urlencoded({extended:true}))
 
 
 
+
+
+const getMonthlyUserCount = async () => {
+    try {
+      const userCountByMonth = await User.aggregate([
+        {
+          $group: {
+            _id: { $month: { $toDate: '$currentDate' } },
+            count: { $sum: 1 },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            months: {
+              $push: {
+                month: '$_id',
+                count: '$count',
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            months: {
+              $map: {
+                input: [
+                  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+                ],
+                as: 'month',
+                in: {
+                  month: '$$month',
+                  count: {
+                    $let: {
+                      vars: {
+                        matchedMonth: { $arrayElemAt: [{ $filter: { input: '$months', as: 'm', cond: { $eq: ['$$m.month', '$$month'] } } }, 0] },
+                      },
+                      in: { $ifNull: ['$$matchedMonth.count', 0] },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          $sort: { 'months.month': 1 },
+        },
+        {
+          $project: {
+            _id: 0,
+            months: 1,
+          },
+        },
+      ]);
+  
+      return userCountByMonth[0].months;
+    } catch (error) {
+      console.error('Error:', error.message);
+      throw error;
+    }
+  };
+
+
+  const getMonthlyOrderDetails = async () => {
+    try {
+      const orderDetailsByMonth = await Order.aggregate([
+        {
+          $group: {
+            _id: {
+              $month: '$currentData'
+            },
+            count: { $sum: 1 }, 
+          },
+        },
+        {
+          $sort: { _id: 1 }
+        },
+        {
+          $group: {
+            _id: null,
+            months: {
+              $push: {
+                month: '$_id',
+                count: '$count'
+              }
+            }
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            months: {
+              $map: {
+                input: [
+                  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+                ],
+                as: 'month',
+                in: {
+                  month: '$$month',
+                  count: {
+                    $let: {
+                      vars: {
+                        matchedMonth: {
+                          $arrayElemAt: [
+                            {
+                              $filter: {
+                                input: '$months',
+                                as: 'm',
+                                cond: { $eq: ['$$m.month', '$$month'] }
+                              }
+                            }, 0
+                          ]
+                        },
+                      },
+                      in: { $ifNull: ['$$matchedMonth.count', 0] },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          $unwind: '$months'
+        },
+        {
+          $replaceRoot: { newRoot: '$months' }
+        },
+        {
+          $sort: { month: 1 } 
+        }
+      ]);
+  
+      return orderDetailsByMonth;
+    } catch (error) {
+      console.error('Error:', error.message);
+      throw error;
+    }
+  };
+
+
+  const getOrderStatusPercentages = async () => {
+    try {
+      const statusCounts = {
+        'Processing': 0,
+        'Cancelled': 0,
+        'Delivered': 0,
+        'Return': 0,
+        'Order Placed': 0
+      };
+  
+      const orderStatuses = await Order.aggregate([
+        {
+          $group: {
+            _id: '$Status',
+            count: { $sum: 1 }
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            status: '$_id',
+            count: 1
+          }
+        }
+      ]);
+  
+      orderStatuses.forEach(status => {
+        statusCounts[status.status] = status.count;
+      });
+  
+      const totalOrders = Object.values(statusCounts).reduce((acc, curr) => acc + curr, 0);
+      const statusPercentages = Object.keys(statusCounts).map(status => {
+        const percentage = totalOrders > 0 ? (statusCounts[status] / totalOrders) * 100 : 0;
+        return { status, percentage };
+      });
+  
+      console.log(statusPercentages);
+      return statusPercentages;
+    } catch (error) {
+      console.error('Error:', error.message);
+      throw error;
+    }
+  };
+  
+
+  const calculateDeliveredRevenue = async () => {
+    try {
+      const totalDeliveredRevenue = await Order.aggregate([
+        {
+          $match: { Status: 'Delivered' }
+        },
+        {
+          $group: {
+            _id: null,
+            totalAmount: { $sum: '$totalAmount' }
+          }
+        }
+      ]);
+  
+      if (totalDeliveredRevenue.length > 0) {
+        const deliveredRevenue = totalDeliveredRevenue[0].totalAmount;
+        return deliveredRevenue;
+      }
+  
+      return 0; 
+    } catch (error) {
+      console.error('Error:', error.message);
+      throw error;
+    }
+  };
+  
+  const getCurrentMonthRevenue = async () => {
+    try {
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth() + 1; 
+  
+      const currentMonthRevenue = await Order.aggregate([
+        {
+          $match: {
+            Status: 'Delivered',
+            currentData: {
+              $gte: new Date(currentDate.getFullYear(), currentMonth - 1, 1),
+              $lt: new Date(currentDate.getFullYear(), currentMonth, 0), 
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalAmount: { $sum: '$totalAmount' },
+          },
+        },
+      ]);
+  
+      if (currentMonthRevenue.length > 0) {
+        return currentMonthRevenue[0].totalAmount;
+      } else {
+        console.log('No revenue for the current month.');
+        return 0;
+      }
+    } catch (error) {
+      console.error('Error:', error.message);
+      throw error;
+    }
+  };
+
+  const getStatusPercentage = async () => {
+    try {
+      const statusPercentage = await Order.aggregate([
+        {
+          $group: {
+            _id: '$Status',
+            count: { $sum: 1 },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            status: '$_id',
+            percentage: { $multiply: [{ $divide: ['$count', { $sum: '$count' }] }, 100] },
+          },
+        },
+      ]);
+  
+      console.log(statusPercentage);
+      return statusPercentage;
+    } catch (error) {
+      console.error('Error:', error.message);
+      throw error;
+    }
+  };
+  
+  
+  
+  
+  
+  
 const adminLogin = async(req,res)=>{
     try{
         res.render('login')
@@ -33,7 +313,7 @@ const verifyLogin = async(req,res)=>{
             {
                 if(userData.is_admin===1){
                     req.session.admin = userData._id
-                    res.render('dashboard')
+                    res.redirect('/admin/dashboard')
                 }else{
                     res.render('login',{message:"invalid user..."})
                 }
@@ -58,11 +338,116 @@ const adminLogout = async(req,res)=>{
 }
 
 
+  
+  
+ 
+
 const adminDashboard = async(req,res)=>{
     try{
-        res.render('dashboard')
+        let arrayforUser = []
+        let arrayforOrder = []
+        let arrayforStatus = []
+        const monthlyUserCounts = await getMonthlyUserCount();
+        monthlyUserCounts.forEach(monthData => {
+            const { month, count } = monthData; 
+            console.log(`Month: ${month}, User Count: ${count}`);
+            arrayforUser.push(count)
+        })
+        const monthlyOrderCounts = await getMonthlyOrderDetails();
+        monthlyOrderCounts.forEach(monthData=>{
+            const { month, count } = monthData;
+            arrayforOrder.push(count)
+        })
+        const statuspersantage = await getOrderStatusPercentages();
+    
+        statuspersantage.forEach(monthData => {
+          const { status, percentage } = monthData;
+          arrayforStatus.push(percentage);
+        });
+        const roundedArray = arrayforStatus.map(number => Number(number.toFixed(2)));
+        console.log(arrayforStatus)
+        const productCount = await Product.countDocuments({})
+        const categoryCount = await Category.countDocuments({})
+        const orderCount = await Order.countDocuments({})
+        const revenue = await calculateDeliveredRevenue()
+        const monthlyrevenue = await getCurrentMonthRevenue();
+        res.render('dashboard',{
+            arrayforUser:arrayforUser,
+            arrayforOrder:arrayforOrder,
+            productCount:productCount,
+            categoryCount:categoryCount,
+            orderCount:orderCount,
+            revenue:revenue,
+            monthlyrevenue:monthlyrevenue,
+            arrayforStatus:JSON.stringify(roundedArray)
+        })
     }catch(error){
         console.log(error.message)
+    }
+}
+const reportDetails = async(req,res)=>{
+    try{
+        const SortedData = req.query.sorting
+        let orderData
+        let startDate = req.query.startDateInput
+        let endDate = req.query.endDateInput
+        if(SortedData){
+            orderData = await Order.find({paymentMethod:SortedData,Status: 'Delivered'})
+            console.log('orderData',orderData)
+        }
+        if(startDate && endDate ){
+            const adjustedEndDate = new Date(endDate);
+            adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
+            adjustedEndDate.setHours(0, 0, 0, 0);
+            
+            orderData = await Order.find({
+                currentData: { $gte: startDate, $lt: adjustedEndDate },
+                Status: 'Delivered'
+            });
+            console.log("i am in true")
+        // }else{
+        //     console.log("i am in else")
+        //     orderData = await Order.find({Status:'Delivered'})
+        // }
+        }
+            console.log("data",orderData)
+            res.render('report',{
+                orderData,
+                startDate,
+                endDate,
+                SortedData
+
+            })
+
+    }catch(error){
+        console.log(error)
+    }
+}
+
+const salesReport = async(req,res)=>{
+    try{
+        let orderData
+        let startDate = req.body.startDateInput
+        let endDate = req.body.endDateInput
+        if(startDate && endDate ){
+            const adjustedEndDate = new Date(endDate);
+            adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
+            adjustedEndDate.setHours(0, 0, 0, 0);
+            
+            orderData = await Order.find({
+                currentData: { $gte: startDate, $lt: adjustedEndDate },
+                Status: 'Delivered'
+            });
+        }
+            console.log("data",orderData)
+            res.render('report',{
+                orderData,
+                startDate,
+                endDate
+            })
+
+    }catch(error){
+        console.log(error)
     }
 }
 
@@ -271,8 +656,15 @@ const categoryManagement = async(req,res)=>{
 
 const addCategory = async (req, res) => {
     try {
-        const duplicateData = await Category.findOne({ Name: { $regex: new RegExp(`^${req.body.name}$`, 'i') } });
-        if (duplicateData) {
+        const trimmedName = req.body.name.trim();
+        const nameWithoutSpaces = trimmedName.replace(/\s+/g, '\\s*');
+        const regexPattern = `^${nameWithoutSpaces}$`;
+        
+        const duplicateData = await Category.countDocuments({
+          Name: { $regex: new RegExp(regexPattern, 'i') }
+        });
+        
+        if (duplicateData>0) {
             const productData = await Category.find({})
             res.render('category',{message:" already exist..!",categories:productData});
         } else {
@@ -334,11 +726,12 @@ const editCategory = async(req,res)=>{
 
 const deleteCategory = async(req,res)=>{
     try{
-        id=req.query.id
+        console.log("i am here ",req.body)
+        id=req.body.id
         const Data = await Category.deleteOne({_id:id})
+        console.log(Data)
         if(Data){
-            const referringPage = req.headers.referer || '/admin/category';
-            res.redirect(referringPage);
+            res.status(200).json({message:'Success'})
         }
     }catch(error)
     {
@@ -385,14 +778,18 @@ const orderManagement = async(req,res)=>{
 
 const orderStatus = async (req, res) => {
     try {
+        let updateStatus
         const id = req.query.orderId;
         const selectedOption = req.query.selectedStatus;
         console.log(id)
         if (!id || !selectedOption) {
             return res.status(400).json({ message: 'Missing required parameters' });
         }
-
-        const updateStatus = await Order.findByIdAndUpdate(id, { $set: { Status: selectedOption } });
+        if(selectedOption == 'Delivered'){
+            updateStatus = await Order.findByIdAndUpdate(id, { $set: { Status: selectedOption,paymentStatus:'Success' } });
+        }else{
+            updateStatus = await Order.findByIdAndUpdate(id, { $set: { Status: selectedOption } });
+        }
 
         if (!updateStatus) {
             return res.status(404).json({ message: 'Order not found' });
@@ -474,21 +871,36 @@ const couponManagement = async (req,res)=>{
 
 const addCoupons = async (req,res)=>{
     try{
+        console.log("i am here")
         console.log(req.body)
         const couponData = new Coupon({
             couponCode:req.body.couponname,
             Discount:req.body.discount,
-            expiryDate:req.body.expdate,
+            expiryDate:req.body.couponDate,
             Limit:req.body.limit,
             minPurchase:req.body.minPurchase
         })
+        const data = req.body.couponname
+        const duplicateDataCount = await Coupon.countDocuments({
+            couponCode: { $regex: new RegExp(`^${data}$`, 'i') } 
+        });
+        if(!duplicateDataCount){
         const coupon = await couponData.save()
-        res.redirect('/admin/coupon') 
+        if (coupon) {
+            console.log("hai",coupon)
+            res.json({ message: 'Success' });
+        } else {
+            res.json({ message: "Coupon not found" });
+        }
+    }else{
+        console.log("failed");
+        res.json({ message: 'Failed' });
+    }
     }catch(error){
         console.log(error.message);
     }
 }
-
+  
 
 const updateCouponStatus = async (req,res)=>{
     try{
@@ -534,18 +946,31 @@ const EditCoupon =  async (req,res)=>{
     try{
         id=req.body.id
         const coupon = await Coupon.findById({_id:id})
-        console.log(req.body)
         const updatedData = {
             couponCode:req.body.couponname,
             Discount:req.body.discount,
-            expiryDate:req.body.expdate,
+            expiryDate:req.body.couponDate,
             minPurchase:req.body.minPurchase,
             Limit:req.body.limit
         }
-        const couponData =await Coupon.findOneAndUpdate(coupon._id,updatedData, { new: true })
-        if(couponData){
-            res.redirect('/admin/coupon')
+        const data = req.body.couponname
+        const duplicateDataCount = await Coupon.countDocuments({
+            couponCode: { $regex: new RegExp(`^${data}$`, 'i') },
+            _id: { $ne: coupon._id } 
+        });        
+            if(!duplicateDataCount){
+            const couponData =await Coupon.findOneAndUpdate(coupon._id,updatedData, { new: true })
+            if (couponData) {
+                console.log("hai",couponData)
+                res.json({ message: 'Success' });
+            } else {
+                res.json({ message: "Coupon not found" });
+            }
+        }else{
+            console.log("failed");
+            res.json({ message: 'Failed' });
         }
+        
     }catch(error){
         console.log(error.message);
     }
@@ -658,8 +1083,7 @@ const editBanner = async (req, res) => {
         const tickOption = req.body.tickOption
         let existingImages = [];
         if(tickOption=="yes"){
-            let existingImages = []; // Initialize existingImages
-
+            let existingImages = [];
             const existingBanner = await Banner.findById(id);
             if (existingBanner && existingBanner.Image) {
                 existingImages = existingBanner.Image || [];
@@ -684,7 +1108,7 @@ const editBanner = async (req, res) => {
                     .resize({ width: 900, height: 900 })
                     .toFile(`public/bannerimages/${resizedImg}`);
 
-                resizedImages.push(resizedImg); // Store the resized image filename
+                resizedImages.push(resizedImg);
             }
 
         }else{
@@ -739,6 +1163,8 @@ module.exports = {
     verifyLogin,
     adminLogout,
     adminDashboard,
+    reportDetails,
+    salesReport,
     customerList,
     activeList,
     uactiveList,

@@ -234,26 +234,43 @@
                                     <div class="checkout_btn_inner d-flex justify-content-between align-items-center">
                                         <a class="gray_btn" href="/home">Continue shop</a>
                                         <% if (CartData && CartData.product && CartData.product.length > 0) { %>
-                                            <a class="primary-btn" href="/checkout" id="checkoutLink">Proceed to Checkout</a>
+                                            <a class="primary-btn" href="" id="checkoutLink">Proceed to Checkout</a>
                                         <% } %>
                                     </div>                                    
-                                        <script>
-                                        document.addEventListener('DOMContentLoaded', function() {
-                                        const checkoutLink = document.getElementById('checkoutLink');
+                                    <script>
+                                        document.addEventListener('DOMContentLoaded', function(event) {
+                                        const link = document.getElementById('checkoutLink');
+                                        link.addEventListener('click', function(event) {
+                                            event.preventDefault();
+                                            fetch('/qtycheck',{
+                                                method:'GET',
+                                                headers:{
+                                                    'Content-Type':'application/json'
+                                                }
+                                            })
+                                            .then(responce=>{
+                                                return responce.json()
+                                            })
+                                            .then(data=>{
+                                                if (data.message === 'Success') {
+                                                        console.log("success");
 
-                                        checkoutLink.addEventListener('click', function(event) {
-                                            const totalSum = document.getElementById('totalSum').textContent;
-                                            const url = new URL(checkoutLink.href);
-
-                                            // Append totalPrice1 as a query parameter to the URL
-                                            url.searchParams.set('totalPrice1', totalSum);
-
-                                            // Redirect to the modified URL
-                                            checkoutLink.href = url.href;
+                                                        const totalSum = document.getElementById('totalSum').textContent;
+                                                        const URL = `/checkout?totalSum=${totalSum}`;
+                                                        window.location=URL
+                                                }else if(data.message=='failed'){
+                                                    Swal.fire({
+                                                    title: 'Error!',
+                                                    html: `<p>The book <strong>${data.product}</strong> is out of stock.</p>`,
+                                                    icon: 'error',
+                                                    confirmButtonText: 'OK'
+                                                    });
+                                                }
+                                            })
                                         });
                                         });
 
-                                        </script>
+                                    </script>
                                 </td>
                             </tr>
                         </tbody>

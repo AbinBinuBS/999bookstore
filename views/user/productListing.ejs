@@ -129,37 +129,96 @@
 		<div class="row">
 			<div class="col-xl-3 col-lg-4 col-md-5">
 				<div class="sidebar-categories">
-					<div class="head">Categories</div>
-					<ul class="main-categories">
-						<li class="main-nav-list"><a  href="/bookList"><span
-							class="lnr lnr-arrow-right"></span>All books</a>
-						   </li>
-						   <% if (categoryData.length > 0) {
-							for (let i = 0; i < categoryData.length; i++) { %>
-								<li class="main-nav-list">
-									<a href="/bookList?id=<%= categoryData[i]._id %><% if (productData && productData.length > 0) { %>&search=<%= search %><% } %>">
-										<span class="lnr lnr-arrow-right"></span><%= categoryData[i].Name %>
-									</a>
-								</li>
-						<%  }
-						   }%>
+					<div class="head">Sort</div>
+					<div class="sidebar-categories">
+						<ul class="main-categories">
+							<li class="main-nav-list">
+								<a href="" onclick="sortProduct(event,'a-z')"><span class="lnr lnr-arrow-right"></span>Sort by (A - Z)</a>
+							</li>
+							<li class="main-nav-list">
+								<a href="" onclick="sortProduct(event,'z-a')"><span class="lnr lnr-arrow-right"></span>Sort by (Z - A)</a>
+							</li>
+							<li class="main-nav-list">
+								<a href="" onclick="sortProduct(event,'h-l')"><span class="lnr lnr-arrow-right"></span>High to Low</a>
+							</li>
+							<li class="main-nav-list">
+								<a href="" onclick="sortProduct(event,'l-h')"><span class="lnr lnr-arrow-right"></span>Low to High</a>
+							</li>
+						</ul>
+						</div>
+						<script>
+							function sortProduct(event, data) {
+								event.preventDefault();
+								const currentUrl = window.location.href;
+								const baseUrl = currentUrl.split('?')[0]; // Extract the base URL without query parameters
+								const updatedUrl = `${baseUrl}?sortdata=${data}`;
+								window.location.href = updatedUrl;
+							}
+						</script>
+						
+						
+						
 						
 
-						
-					</ul>
+<!-- <script>
+    function handleCategoryClick(clickedElement) {
+        const categoryLinks = document.querySelectorAll('.main-nav-list a');
+        categoryLinks.forEach(link => {
+            link.classList.remove('active');
+        });
+        clickedElement.classList.add('active');
+    }
+</script> -->
+
+
+
+					
+									
 				</div>
 				<div class="sidebar-filter mt-50">
 					<div class="top-filter-head">Product Filters</div>
 					<div class="common-filter">
-						<div class="head">Discount</div>
+						<div class="head">Category</div>
 						<form action="#">
-							<ul>
-								<li class="filter-list"><input class="pixel-radio" type="radio" id="apple" name="brand"><label for="apple">10% Off or more</label></li>
-								<li class="filter-list"><input class="pixel-radio" type="radio" id="asus" name="brand"><label for="asus">25% Off or more</label></li>
-								<li class="filter-list"><input class="pixel-radio" type="radio" id="gionee" name="brand"><label for="gionee">40% Off or more</label></li>
-								<li class="filter-list"><input class="pixel-radio" type="radio" id="micromax" name="brand"><label for="micromax">60% Off or more</label></li>
-								<li class="filter-list"><input class="pixel-radio" type="radio" id="samsung" name="brand"><label for="samsung">70% Off or more</label></li>
+								<div class="sidebar-categories">
+							<ul class="main-categories">
+								<li class="main-nav-list">
+									<a href="/bookList"><span class="lnr lnr-arrow-right"></span>All Books</a>
+								</li>
+								<% if (categoryData.length > 0) {
+									for (let i = 0; i < categoryData.length; i++) { %>
+										<li class="main-nav-list">
+											<a href="/bookList?id=<%= encodeURIComponent(categoryData[i]._id) %><% if (productData && productData.length > 0) { %>&search=<%= encodeURIComponent(search) %><% } %>"
+												data-category-id="<%= categoryData[i]._id %>" onclick="handleCategoryClick(this)">
+												<span class="lnr lnr-arrow-right"></span><%= categoryData[i].Name %>
+											</a>
+										</li>
+								<%  }
+								} %>
 							</ul>
+							</div>
+							<script>
+							function handleCategoryClick(clickedElement) {
+    const categoryId = clickedElement.dataset.categoryId;
+    const currentUrl = window.location.href;
+    const baseUrl = currentUrl.split('?')[0]; // Extract the base URL without query parameters
+
+    const sortCriteria = new URLSearchParams(window.location.search).get('sortdata');
+    let updatedUrl = baseUrl;
+
+    if (sortCriteria) {
+        updatedUrl += `?id=${categoryId}&sortdata=${sortCriteria}`; // Include both category ID and sorting criteria
+    } else {
+        updatedUrl += `?id=${categoryId}`; // Only include category ID if no sorting criteria
+    }
+
+    window.location.href = updatedUrl;
+}
+
+						</script>
+							
+							
+							
 						</form>
 					</div>
 					<div class="common-filter">
@@ -196,10 +255,16 @@
 									max = '1500';
 								}
 						
-								const categoryId = '<%= categoryId %>'; // Replace this with your actual category ID or get it from your template
-						
+								const categoryId = '<%= categoryId %>'; 
 								const search = document.getElementById('searchParam').value;
-								const url = `/bookList?id=${categoryId}&search=${search}&min=${min}&max=${max}`;
+
+								const sortCriteria = new URLSearchParams(window.location.search).get('sortdata');
+								let url = `/bookList?id=${categoryId}&search=${search}&min=${min}&max=${max}`;
+
+								if (sortCriteria) {
+									url += `&sortdata=${sortCriteria}`; // Append sorting criteria to the URL if available
+								}
+
 								window.location.href = url;
 							}
 						</script>
@@ -283,8 +348,15 @@
 									</div>
 								</div>
 							<%}%>
-						<%}%>
-						
+						<%}else{%>
+							<div class="container">
+							<div class="row justify-content-center align-items-center" style="height: 100vh;">
+								<div class="col-12 text-center">
+									<img src="img/nodata.jpg" alt="" class="img-fluid">
+								</div>
+							</div>
+						</div>
+							<%}%>
 						<!-- single product -->
 							<!-- single product -->
 						

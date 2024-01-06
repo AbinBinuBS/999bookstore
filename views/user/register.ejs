@@ -122,34 +122,29 @@
 						<form class="row login_form" action="/register" method="post" id="contactForm" novalidate="novalidate" >
 							<div class="col-md-12 form-group">
 								<input type="text" class="form-control" id="name" name="name" placeholder="Name" pattern="[a-zA-Z ]+" title="Only letters and spaces allowed" required>
-								<span class="error-message" id="name-error"></span>
+								<span class="error-message" style="color: red;" id="name-error"></span>
 							</div>
 							<div class="col-md-12 form-group">
 								<input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
-								<span class="error-message" id="email-error"></span>
+								<span class="error-message" style="color: red;" id="email-error"></span>
 							</div>
 							<div class="col-md-12 form-group">
 								<input type="tel" class="form-control" id="phone" name="phone" placeholder="Phone number" pattern="[0-9]+" title="Only numbers allowed" required>
-								<span class="error-message" id="phone-error"></span>
+								<span class="error-message" style="color: red;" id="phone-error"></span>
 							</div>
 							<div class="col-md-12 form-group">
 								<input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
-								<span class="error-message" id="password-error"></span>
+								<span class="error-message" style="color: red;" id="password-error"></span>
 							</div>
 							<div class="col-md-12 form-group">
 								<input type="password" class="form-control" id="password1" name="password1" placeholder="Confirm Password" required>
-								<span class="error-message" id="password1-error"></span>
+								<span class="error-message" style="color: red;" id="password1-error"></span>
 							</div>
 							<div class="col-md-12 form-group">
-								<button type="submit" value="submit"  class="primary-btn">Register</button>
+								<button type="submit"  value="submit"  class="primary-btn">Register</button>
 								<a href="#">999bookstore</a>
 							</div>
-						</form>
-					
-						
-												
-						
-						
+						</form>	
 					</div>
 				</div>
 			</div>
@@ -241,53 +236,53 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
 		form.addEventListener('submit', function (event) {
 			event.preventDefault();
 	
-			const nameField = document.getElementById('name');
+			const nameField = document.getElementById('name').value;
 			const nameError = document.getElementById('name-error');
-			if (!nameField.validity.valid) {
-				nameError.textContent = 'Please enter a valid name (letters and spaces only).';
-				nameField.focus();
-				return;
+			if (nameField.trim() ==='') {
+				nameError.textContent = 'Please enter a valid name.';
+				return false;
 			}
 			nameError.textContent = '';
 	
-			const emailField = document.getElementById('email');
+			const emailField = document.getElementById('email').value;
 			const emailError = document.getElementById('email-error');
-			if (!emailField.validity.valid) {
-				emailError.textContent = 'Please enter a valid email address.';
-				emailField.focus();
-				return;
+			const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/; // Updated regex for email with domain
+			if (!emailRegex.test(emailField)) {
+			emailError.textContent = 'Please enter a valid email address.';
+			return false;
 			}
 			emailError.textContent = '';
 	
-			const phoneField = document.getElementById('phone');
+			const phoneField = document.getElementById('phone').value;
 			const phoneError = document.getElementById('phone-error');
-			if (!phoneField.validity.valid || phoneField.value.length !== 10) {
-				phoneError.textContent = 'Please enter a valid 10-digit phone number.';
-				phoneField.focus();
-				return;
+			if (phoneField.trim().length   !== 10) {
+				phoneError.textContent = 'Please enter a valid  phone number.';
+				return false;
 			}
 			phoneError.textContent = '';
 	
-			const passwordField = document.getElementById('password');
+			const passwordField = document.getElementById('password').value;
 			const passwordError = document.getElementById('password-error');
-			if (!passwordField.validity.valid || passwordField.value.length < 8 || passwordField.value.length >= 12) {
+			if (passwordField.trim() ==='' || passwordField.trim().length < 8 || passwordField.trim().length >= 12) {
 				passwordError.textContent = 'Password should be between 8 and 11 characters.';
-				passwordField.focus();
-				return;
+				return false;
 			}
 			passwordError.textContent = '';
-	
-			const passwordConfirmField = document.getElementById('password1');
-			const passwordConfirmError = document.getElementById('password1-error');
-			if (passwordField.value !== passwordConfirmField.value) {
-				passwordConfirmError.textContent = 'Passwords do not match.';
-				passwordConfirmField.focus();
-				return;
+
+			const passwordField2 = document.getElementById('password1').value;
+			const passwordError2 = document.getElementById('password1-error');
+			if (passwordField2.trim() ==='' || passwordField2.trim().length < 8 || passwordField2.trim().length >= 12) {
+				passwordError2.textContent = 'Password should be between 8 and 11 characters.';
+				return false;
 			}
-			passwordConfirmError.textContent = '';
-	
-			// If all validations pass, submit the form
-			form.submit();
+			passwordError2.textContent = '';
+			if ( passwordField !== passwordField2) {
+				passwordError2.textContent = 'Passwords do not match.';
+				return false;
+			}
+			passwordError2.textContent = '';
+			this.submit()
 		});
 	</script>
+	
 <%-include('../layout/footer.ejs')-%>

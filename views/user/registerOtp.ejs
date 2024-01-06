@@ -110,15 +110,15 @@
 						<form class="row login_form" action="/verifyOtp" method="post" id="contactForm" novalidate="novalidate">
 							<div class="col-md-12 form-group">
 								<input type="text" class="form-control" id="otpInput" name="otp" placeholder="Enter OTP" required>
-								<span class="error-message" id="otp-error"></span>
+								<span class="error-message" style="color: red;" id="otp-error"></span>
 							</div>
 							<div class="col-md-12 form-group">
 								<% if(typeof message !== 'undefined') { %>
-									<p style="color:green"><%= message %></p>
+									<p style="color:red"><%= message %></p>
 								<% } %>
 							</div>
 							<div class="col-md-12 form-group">
-								<button type="submit" value="submit" class="primary-btn" id="verify-button">Verify OTP</button>
+								<button type="button" value="submit" onclick="submitOtp()" class="primary-btn" id="verify-button">Verify OTP</button>
 							</div>
 						</form>
 						<div class="resend-container">
@@ -126,20 +126,48 @@
 						</div>
 						<div id="countdown">30 seconds</div>
 						<style>
-							.login_form_inner {
-    /* Your existing styles for login_form_inner */
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Center content horizontally */
-    text-align: center; /* Center text content */
-}
+						.login_form_inner {
+							/* Your existing styles for login_form_inner */
+							display: flex;
+							flex-direction: column;
+							align-items: center; /* Center content horizontally */
+							text-align: center; /* Center text content */
+						}
 
-.resend-container {
-    margin-top: 10px; /* Adjust spacing as needed */
-}
-
+						.resend-container {
+							margin-top: 10px; /* Adjust spacing as needed */
+						}
 						</style>
 						<script>
+						
+
+							function submitOtp(){
+								console.log("hai")
+								const otpInput = document.getElementById('otpInput').value;
+								const errorMessageElement = document.getElementById('otp-error');
+								errorMessageElement.textContent = '';
+							
+
+								if(otpInput.trim()==''){
+									console.log("hello")
+									errorMessageElement.textContent = 'Otp is required';
+										return; 								
+								}
+								const submitform = document.getElementById('contactForm')
+								submitform.submit()
+							}
+
+
+
+
+
+
+
+
+
+
+
+
 						let remainingTime = parseInt(localStorage.getItem('remainingTime')) || 30;
 						let countdownInterval;
 

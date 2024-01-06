@@ -254,11 +254,52 @@
                                                                 <button type="button" onclick="confirmSubmission3('<%=i%>','You want to unblock this Category')" class="  dropdown-item  bg-white">Unblock</button>
                                                             <% } %>
                                                          </div>
-                                                            <button type="button" onclick="confirmSubmission('<%= categories[i]._id %>')" class=" dropdown-item  bg-white text-danger">Remove</button>
-                                                        <form action="/admin/deleteCategory?id=<%= categories[i]._id %>" method="POST" id="myForm_<%= categories[i]._id %>">
-                                                        </form>   
+                                                            <button type="button" onclick="deleteCat('<%= categories[i]._id %>')" class=" dropdown-item  bg-white text-danger">Remove</button>
+                                                            <input type="hidden" id="delcategoryID" value="<%= categories[i]._id %>">
                                                     </form>
                                                     </div>
+                                                    <script>
+                                                        function deleteCat(Data){
+                                                            Swal.fire({
+                                                            title: 'Are you sure?',
+                                                            text: 'You want to delete this product.',
+                                                            icon: 'warning',
+                                                            showCancelButton: true,
+                                                            confirmButtonText: 'Yes Delete!',
+                                                            cancelButtonText: 'Cancel'
+                                                        }).then((result) => {
+                                                            if (result.isConfirmed) {
+                                                                fetch('/admin/deleteCategory',{
+                                                                method:'POST',
+                                                                headers:{
+                                                                    'Content-Type':'application/json'
+                                                                },
+                                                                body:JSON.stringify({
+                                                                    id:Data
+                                                                })
+                                                            })
+                                                            .then(responce=>{
+                                                               return responce.json()
+                                                            })
+                                                            .then(data=>{
+                                                                if(data.message == 'Success'){
+                                                                    Swal.fire({
+                                                                    icon: 'success',
+                                                                    title: 'Success!',
+                                                                    text: 'The action was completed successfully.',
+                                                                    confirmButtonText: 'OK'
+                                                                    }).then((result) => {
+                                                                    if (result.isConfirmed) {
+                                                                        location.reload()
+                                                                    }
+                                                                    });
+                                                                }
+                                                            })
+                                                            }
+                                                        });
+                                                            
+                                                        }
+                                                    </script>
                                                 </div> <!-- dropdown //end -->
                                             </td>
                                         </tr>
@@ -338,7 +379,7 @@
         }
     
         function containsNumberOrSpecialChar(value) {
-            return /[^\w\s]/.test(value) || /\d/.test(value); // Checks if value contains a special character or number
+            return /[^\w\s]/.test(value) || /\d/.test(value); 
         }
     </script>
     
@@ -365,21 +406,7 @@
     }
 
 
-    function confirmSubmission(index) {
-            Swal.fire({
-                title: 'Are you sure?',
-                text: 'You want to delete this product.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Yes Delete!',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // If the user clicks "Yes, submit it!", submit the form
-                    document.getElementById(`myForm_${index}`).submit();
-                }
-            });
-        }
+   
 
 </script>
 

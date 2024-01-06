@@ -175,53 +175,7 @@
                 <td>
                     <h2 class="content-title">Banner</h2>
                 </td>
-                <!-- Button to trigger the modal -->
-<td>
-    <button class="btn btn-primary border-0" data-bs-toggle="modal" data-bs-target="#couponModal">Add coupon</button>
-</td>
-
-<!-- Modal -->
-<div class="modal fade" id="couponModal" tabindex="-1" aria-labelledby="couponModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <!-- Modal header -->
-            <div class="modal-header">
-                <h5 class="modal-title" id="couponModalLabel">Add Coupon</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <!-- Modal body -->
-            <div class="modal-body">
-                <!-- Coupon form -->
-                <form action="/admin/coupon" method="post">
-                    <div class="mb-3">
-                        <label for="couponName" class="form-label">Coupon Name</label>
-                        <input type="text" name="couponname" class="form-control" id="couponName">
-                    </div>
-                    <div class="mb-3">
-                        <label for="couponDate" class="form-label">Expiry Date</label>
-                        <input type="date" name="expdate" class="form-control" id="couponDate">
-                    </div>
-                    <div class="mb-3">
-                        <label for="discount" class="form-label">Flat Discount </label>
-                        <input type="number" name="discount" class="form-control" id="discount">
-                    </div>
-                    <div class="mb-3">
-                        <label for="limit" class="form-label">Limit</label>
-                        <input type="number" name="limit" class="form-control" id="limit">
-                    </div>
-                    <div class="mb-3">
-                        <label for="minPurchase" class="form-label">Minimum Purchase</label>
-                        <input type="number" name="minPurchase" class="form-control" id="minPurchase">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-                
-            </div>
+         </div>
             <div class="card mb-4">
                 <header class="card-header">
                     <div class="row gx-3">
@@ -283,7 +237,7 @@
                                                         <i class="material-icons md-more_horiz"></i>
                                                     </a>
                                                     <div class="dropdown-menu">
-                                                        <a class="dropdown-item" href="/admin/editBanner?bannerId=<%= bannerData[i]._id %>">Edit Coupon</a>
+                                                        <a class="dropdown-item" href="/admin/editBanner?bannerId=<%= bannerData[i]._id %>">Edit Banner</a>
                                                         
                                                     </div>
                                                 </div> 

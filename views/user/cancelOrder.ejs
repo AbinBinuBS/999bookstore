@@ -124,6 +124,12 @@
 	<!--================Order Details Area =================-->
 	<section class="order_details section_gap">
 		<div class="container">
+			<button class="btn mb-3" style="background-color: rgb(139, 173, 173);" onclick="downloadFile()">Invoice Download</button>
+                 <script>
+                    function downloadFile() {
+         			window.print();
+                    }
+                </script>
 			<div class="row order_d_inner">
                 <div class="col-lg-6"> <!-- Increased column width -->
                     <div class="details_item">

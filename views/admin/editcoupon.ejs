@@ -196,7 +196,7 @@
                             <h4>Basic</h4>
                         </div>
                         <div class="card-body">
-                            <form action="/admin/editCoupon" method="post" onsubmit="return validateForm()">
+                            <form action="" id="addingForm" method="POST">
                                 <!-- Coupon Name -->
                                 <div class="mb-4">
                                     <label for="couponname" class="form-label">Coupon Name</label>
@@ -226,7 +226,7 @@
                                 <div class="mb-4">
                                     <label class="form-label">Limit</label>
                                     <input type="text" value="<%=couponData.Limit%>" name="limit" class="form-control" id="limit">
-                                    <input type="hidden" value="<%=couponData._id%>" name="id">
+                                    <input type="hidden" value="<%=couponData._id%>" name="id" id="couponid1">
                                     <div id="limitError" class="error" style=" color: red; display: none;"></div>
                                 </div>
                             
@@ -238,10 +238,58 @@
                                 </div>
                             
                                 <div class="text-center mt-4">
-                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                    <button type="button" onclick="validateForm()" class="btn btn-primary">Submit</button>
                                 </div>
                             </form>
                             <script>
+
+
+                                function submitForm(){
+                                    const couponname = document.getElementById('couponname').value
+                                    const couponDate = document.getElementById('couponDate').value
+                                    const discount = document.getElementById('discount').value
+                                    const minPurchase = document.getElementById('minPurchase').value
+                                    const limit = document.getElementById('limit').value
+                                    const id = document.getElementById('couponid1').value
+                                    fetch('/admin/editCoupon',{
+                                        method:'POST',
+                                        headers:{
+                                            'Content-Type':'application/json'
+                                        },
+                                        body:JSON.stringify({
+                                            
+                                            couponname:couponname,
+                                            couponDate:couponDate,
+                                            discount:discount,
+                                            limit:limit,
+                                            minPurchase:minPurchase,
+                                            id:id
+                                        })
+                                    })
+                                    .then(res=>{
+                                        if(res.ok){
+                                            return res.json()
+                                        }
+                                    })
+                                    .then(data => {
+                                        if (data.message == 'Success') {
+                                            console.log("success");
+                                            window.location.href = '/admin/coupon';
+                                        }else if(data.message == 'Failed'){
+                                            couponNameError.innerText = 'Coupon Name already exist..';
+                                            couponNameError.style.display = 'block';
+                                        }
+                                    })
+                                    .catch(err=>{
+                                        console.log(err.message)
+                                    })
+                                }
+
+
+
+
+
+
                                 function validateForm() {
                                     let isValid = true;
                             
@@ -265,7 +313,7 @@
                                         couponNameError.style.display = 'none';
                                     }
                             
-                                    // Validation for expiry date (dummy validation)
+                            
                                     if (couponDate.value === '') {
                                         expiryDateError.innerText = 'Expiry Date is required';
                                         expiryDateError.style.display = 'block';
@@ -274,7 +322,7 @@
                                         expiryDateError.style.display = 'none';
                                     }
                             
-                                    // Validation for discount (dummy validation)
+                                    
                                     if (discount.value.trim() === '') {
                                         discountError.innerText = 'Flat Discount is required';
                                         discountError.style.display = 'block';
@@ -291,7 +339,7 @@
                                         discountError.style.display = 'none';
                                     }
                             
-                                    // Validation for limit (dummy validation)
+                                 
                                     if (limit.value.trim() === '') {
                                         limitError.innerText = 'Limit is required';
                                         limitError.style.display = 'block';
@@ -329,7 +377,13 @@
                                         minPurchaseError.style.display = 'none';
                                     }
                             
-                                    return isValid;
+                                    if(isValid===true){
+                                        const addingForm = document.getElementById('addingForm')
+                                        submitForm()
+                                    }else{
+                                        console.log("fucked up")
+                                        return false
+                                    }
                                 }
                             </script>
                         </div>

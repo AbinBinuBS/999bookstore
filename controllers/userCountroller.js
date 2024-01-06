@@ -249,17 +249,50 @@ const forgetPassword = async (req,res)=>{
 
         if(userEmail)
         {
+        console.log("i am here")
             const Data = req.body.email
             sendVerifyMail(Data)
             req.session.check=Data
-            res.render('forgetpasswordOtp')
+            res.status(200).json({ message: "Success" });
         }else{
-            res.render('forgotpassword',{message:"email not exist.."})
+            res.status(500).json({ message: "failed" });
         }
     }catch(error){
         console.log(error.message)
     }
 }
+
+const loadForgetPasswordverifyOtp = async (req,res)=>{
+    try{
+        console.log(req.session.check)
+        if(req.session.check){
+            res.render('forgetpasswordOtp')
+        }else{
+            res.redirect('/forgotpassword')
+        }
+    }catch(error){
+        console.log(error.message)
+    }
+}
+
+const ForgetPasswordresendOtp = async (req,res)=>{
+    try{
+        let Data
+        console.log("i am here")
+        console.log(req.session);
+        if(req.session.Data){
+            Data=req.session.Data.email
+        }else if(req.session.check){
+            Data=req.session.check
+        }
+        
+        sendVerifyMail(Data)
+        return res.status(200).json({message:"succcess"})
+    }catch(error){
+        console.log(error.message);
+    }
+}
+
 
 const forgetPasswordverifyOtp = async (req,res)=>{
     try{
@@ -288,29 +321,10 @@ const forgotPasswordChech = async(req,res)=>{
             req.session.save()
             res.redirect('/')
         }else{
-            res.render('forgotpasswordcheck',{message:"new password and confirm password are not equal"})
+            res.status(500).json({message:"failed"})
         }
 
         
-    }catch(error){
-        console.log(error.message);
-    }
-}
-const ForgetPasswordresendOtp = async (req,res)=>{
-    try{
-        let Data
-        console.log("i am here")
-        console.log(req.session);
-
-        console.log(req.session.Data.email);
-        if(req.session.Data){
-            Data=req.session.Data.email
-        }else if(req.session.check){
-            Data=req.session.check
-        }
-        
-        sendVerifyMail(Data)
-        return res.status(200).json({message:"succcess"})
     }catch(error){
         console.log(error.message);
     }
@@ -331,8 +345,8 @@ const ForgetPasswordresendOtp = async (req,res)=>{
 
 const homePage = async (req, res) => {
     try {
-        const bannerHome1 = await Banner.findOne({Name:"Banner for heme display 1",is_active:1})
-        const bannerHome2 = await Banner.findOne({Name:"Banner for heme display 2",is_active:1})
+        const bannerHome1 = await Banner.findOne({Name:"Banner for home page 1",is_active:1})
+        const bannerHome2 = await Banner.findOne({Name:"Banner for home page 2",is_active:1})
         const activeCategories = await Category.find({ is_active: '1' }).limit(4);
         const activeCategoryIds = activeCategories.map(category => category._id);
         const bestSeller = await Product.find({ Category: { $in: activeCategoryIds } })
@@ -514,50 +528,58 @@ const productPage = async(req,res)=>{
 
 const showAllBooks = async (req, res) => {
     try {
+        let sortQuery = {};
+
+switch (req.query.sortdata) {
+    case 'a-z':
+        sortQuery = { productName: 1 };
+        break;
+    case 'z-a':
+        sortQuery = { productName: -1 };
+        break;
+    case 'h-l':
+        sortQuery = { salePrice: -1 };
+        break;
+    case 'l-h':
+        sortQuery = { salePrice: 1 };
+        break;
+}                  
+        console.log("hai",req.query.sortdata)
         let page = req.query.page ? parseInt(req.query.page) : 1;
         const limit = 9;
         const categoryId = req.query.id;
         const search = req.query.search || '';
-
         const max = parseFloat(req.query.max);
         const min = parseFloat(req.query.min);
+        
         let filter = {};
 
+        // Min and max price range filters
         if (max && min) {
             filter.salePrice = { $gte: min, $lte: max };
         }
 
-        let productData = [];
-        let count = 0;
-
-        const activeCategories = await Category.find({ is_active: '1' });
-        const activeCategoryIds = activeCategories.map(cat => cat._id);
-
-        filter = {
-            Category: { $in: activeCategoryIds },
-            ...filter,
-            $or: [
-                { productName: { $regex: '.*' + search + '.*', $options: 'i' } }
-            ]
-        };
-
-        if (categoryId && activeCategoryIds.includes(categoryId)) {
+        // Category filter
+        if (categoryId) {
             filter.Category = categoryId;
         }
 
+        // Search filter (if needed)
+        if (search) {
+            filter.productName = { $regex: '.*' + search + '.*', $options: 'i' };
+        }
+        // Add any additional search criteria or modify the above based on your needs
+
+        let productData = [];
+        let count = 0;
+
+        // Fetch products based on the combined filter
         productData = await Product.find(filter)
-            .limit(limit)
+            .sort(sortQuery) 
             .skip((page - 1) * limit)
             .exec();
 
         count = await Product.countDocuments(filter);
-
-        productData.sort((a, b) => {
-            if (String(a.Category) !== String(b.Category)) {
-                return String(a.Category).localeCompare(String(b.Category));
-            }
-            return a.productName.localeCompare(b.productName);
-        });
 
         const categoryData = await Category.find({ is_active: '1' });
         const userData = await User.findById(req.session.user_id);
@@ -577,8 +599,6 @@ const showAllBooks = async (req, res) => {
         console.log(error.message);
     }
 };
-
-
 
 
 // ===============================end of blk listing===============================
@@ -814,9 +834,49 @@ const deleteCartitem = async (req,res)=>{
 // ==================================End of Cart=====================================
 
 // ===========================check out=============================
+const qtycheck = async(req,res)=>{
+    try{
+        console.log("i am here")
+        const id = req.session.user_id;
+        console.log("userID:", id);
+        const cartData = await Cart.findOne({ userId: id });
+        
+        if (cartData) {
+            for (const cartItem of cartData.product) {
+                const productId = cartItem.productId;
+                const productData = await Product.findById(productId);      
+                if (productData) {
+                    const cartQuantity = cartItem.Quantity;
+                    const availableQuantity = productData.Quantity;
+        
+                    console.log(`Product ID: ${productId}`);
+                    console.log(`Cart Quantity: ${cartQuantity}`);
+                    console.log(`Available Quantity: ${availableQuantity}`);
+                    console.log("productData._id",productData.productName);
+                    if (cartQuantity > availableQuantity) {
+                        return res.status(200).json({ product: productData.productName ,message:'failed'});
+                    } else {
+                        console.log("hai")
+                         res.status(200).json({ message:'Success'});
+                    }   
+                } else {
+                    console.log(`Product with ID ${productId} not found`);
+                }
+            }
+        } else {
+            console.log("Cart data not found for this user");
+        }
+        
+    }catch(error){
+        console.log(error.message)
+    }
+}
+
+
 
 const checkoutOrder = async(req,res)=>{
     try{
+        console.log("i am at checkout")
         id=req.session.user_id
         const userData = await User.findById(id, { address: 1, _id: 0 })
         const CartData = await Cart.findOne({ userId: req.session.user_id }).populate('product.productId');
@@ -842,7 +902,7 @@ const applycoupons = async (req, res) => {
             }
         }
 
-        if (couponData.minPurchase < amount) {
+        if (couponData.minPurchase <= amount) {
             if (count < couponData.Limit) {
                 return res.status(200).json({
                     message: "Success",
@@ -921,28 +981,56 @@ const uniqueNumber = generateUniqueNumber();
 
 const onlinePay = async (req, res) => {
     try {
-        console.log("i am here")
+        const id = req.session.user_id;
+        console.log("userID:", id);
+        const cartData = await Cart.findOne({ userId: id });
         
-        console.log(req.body.amount)
-        console.log('hadsfhsdfak');
+        if (cartData) {
+            for (const cartItem of cartData.product) {
+                const productId = cartItem.productId;
+                const productData = await Product.findById(productId);      
+                if (productData) {
+                    const cartQuantity = cartItem.Quantity;
+                    const availableQuantity = productData.Quantity;
+        
+                    console.log(`Product ID: ${productId}`);
+                    console.log(`Cart Quantity: ${cartQuantity}`);
+                    console.log(`Available Quantity: ${availableQuantity}`);
+                    console.log("productData._id",productData.productName);
+                    if (cartQuantity > availableQuantity) {
+                        return res.status(200).json({ product: productData.productName });
+                    } else {
+                        console.log("hai")
+                    }
+                    
+                    
+                    
+                } else {
+                    console.log(`Product with ID ${productId} not found`);
+                }
+            }
+        } else {
+            console.log("Cart data not found for this user");
+        }
+        
+
+
+        
+       
         var options = {
-            
-            amount: req.body.amount*100,  // amount in the smallest currency unit
+            amount: req.body.amount*100,  
             currency: "INR",
             receipt: "order_rcptid_11"
           };
-          
           instance.orders.create(options, function(err, order) {
-            console.log(order);
             let razorOrderId = order;
             let paymentStatus = order.status
-            console.log("RazorODER",razorOrderId)
             res.status(200).json({ message: "Order placed successfully.", razorOrderId ,paymentStatus});
           });
      
     } catch (error) {
-        console.error(error.message);
-        res.status(500).json({ error: 'Server error' });
+        console.error('Error occurred:', error);
+    res.status(500).json({ error: 'Internal server error' });
     }
 }
 
@@ -964,7 +1052,36 @@ const paymentManagement = async (req,res)=>{
         Pincode: addressAtIndex.Pincode
        }
        const cartData = await Cart.findOne({userId:id})
-
+        console.log("userID:", id);
+        
+        if (cartData) {
+            for (const cartItem of cartData.product) {
+                const productId = cartItem.productId;
+                const productData = await Product.findById(productId);      
+                if (productData) {
+                    const cartQuantity = cartItem.Quantity;
+                    const availableQuantity = productData.Quantity;
+        
+                    console.log(`Product ID: ${productId}`);
+                    console.log(`Cart Quantity: ${cartQuantity}`);
+                    console.log(`Available Quantity: ${availableQuantity}`);
+                    console.log("productData._id",productData.productName);
+                    if (cartQuantity > availableQuantity) {
+                        return res.status(200).json({ product: productData.productName ,message : "Out of stock"});
+                    } else {
+                        console.log("hai")
+                    }
+                    
+                    
+                    
+                } else {
+                    console.log(`Product with ID ${productId} not found`);
+                }
+            }
+        } else {
+            console.log("Cart data not found for this user");
+        }
+        
        const productDetails = [];
 
        if (cartData && cartData.product) {
@@ -974,6 +1091,7 @@ const paymentManagement = async (req,res)=>{
                productDetails.push(product); 
            });
        }
+       if(payment=='Cash on delevery'){
         const order = new Order({
             userId: id,
             items: productDetails, 
@@ -984,6 +1102,19 @@ const paymentManagement = async (req,res)=>{
            
         });
         await order.save()
+        }else{
+            const order = new Order({
+                userId: id,
+                items: productDetails, 
+                totalAmount: totalAmount,
+                paymentMethod: payment,
+                address: address,
+                orderId:uniqueNumber,
+                paymentStatus:'Success'
+               
+            });
+            await order.save()
+        }
 
         if (cartData && cartData.product) {
             for (const item of cartData.product) {
@@ -1015,17 +1146,45 @@ const walletPayment = async (req,res)=>{
     try{
         id=req.session.user_id
         const userData = await User.findById({_id:id})
-        const totalAmount = req.body.amount
-        console.log('totalAmount',totalAmount);
-        if(userData.wallet>=totalAmount){
-            const addToWallet = await User.findOneAndUpdate(
-                { _id: id },
-                { $inc: { wallet: -totalAmount } }
-            );
-            res.status(200).json({ message: "success"});
-        }else{
-            res.status(200).json({ message: "failed"});
+        const cartData = await Cart.findOne({userId:id})
+        if (cartData) {
+            for (const cartItem of cartData.product) {
+                const productId = cartItem.productId;
+                const productData = await Product.findById(productId);      
+                if (productData) {
+                    const cartQuantity = cartItem.Quantity;
+                    const availableQuantity = productData.Quantity;
+        
+                    console.log(`Product ID: ${productId}`);
+                    console.log(`Cart Quantity: ${cartQuantity}`);
+                    console.log(`Available Quantity: ${availableQuantity}`);
+                    console.log("productData._id",productData.productName);
+                    if (cartQuantity > availableQuantity) {
+                        return res.status(200).json({ product: productData.productName ,message : "Out of stock"});
+                    } else {
+                        const totalAmount = req.body.amount
+                        console.log('totalAmount',totalAmount);
+                        if(userData.wallet>=totalAmount){
+                            const addToWallet = await User.findOneAndUpdate(
+                                { _id: id },
+                                { $inc: { wallet: -totalAmount } }
+                            );
+                            res.status(200).json({ message: "success"});
+                        }else{
+                            res.status(200).json({ message: "failed"});
+                        }
+                    }
+                    
+                    
+                    
+                } else {
+                    console.log(`Product with ID ${productId} not found`);
+                }
+            }
+        } else {
+            console.log("Cart data not found for this user");
         }
+        
 
     }catch(error){
         console.log(error.message)
@@ -1333,6 +1492,7 @@ module.exports = {
     Loadforgotpassword,
     forgetPassword,
     forgetPasswordverifyOtp,
+    loadForgetPasswordverifyOtp,
     forgotPasswordChech,
     ForgetPasswordresendOtp,
     homePage,
@@ -1343,6 +1503,7 @@ module.exports = {
     addToCart,
     deleteCartitem,
     quantityCheck,
+    qtycheck,
     checkoutOrder,
     applycoupons,
     pushingCoupon,
