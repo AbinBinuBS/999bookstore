@@ -85,7 +85,7 @@
                     </a>
                     <div class="submenu">
                         <a href="/admin/banner">Banner List</a>
-                        <a href="/admin/addbanner">Add Banner </a>
+                        <!-- <a href="/admin/addbanner">Add Banner </a> -->
                     </div>
                 </li>
                 <li class="menu-item">
@@ -214,7 +214,12 @@
                     <article class="itemlist">
                         <div class="row align-items-center">
                             <div class="col col-check flex-grow-0">
+                                <%if(currentPage==1){%>
                                 <%= [i+1] %>
+                                <%}else if(currentPage>1){%>
+                                    <%=(parseInt(currentPage)-1) * 8 + i+1%>
+                                    <%}else{%>
+                                    <%}%>
                             </div>
                             <div class="col-lg-4 col-sm-4 col-8 flex-grow-1 col-name">
                                 <a class="itemside" href="#">
@@ -259,15 +264,27 @@
             <div class="pagination-area mt-30 mb-50">
                 <nav aria-label="Page navigation example">
                     <ul class="pagination justify-content-start">
-                        <li class="page-item active"><a class="page-link" href="#">01</a></li>
-                        <li class="page-item"><a class="page-link" href="#">02</a></li>
-                        <li class="page-item"><a class="page-link" href="#">03</a></li>
-                        <li class="page-item"><a class="page-link dot" href="#">...</a></li>
-                        <li class="page-item"><a class="page-link" href="#">16</a></li>
-                        <li class="page-item"><a class="page-link" href="#"><i class="material-icons md-chevron_right"></i></a></li>
+                        <% if (currentPage > 1) { %>
+                            <li class="page-item">
+                                <a class="page-link" href="/admin/product?page=<%= currentPage - 1 %>"><i class="material-icons md-chevron_left"></i></a>
+                            </li>
+                        <% } %>
+            
+                        <% for (let i = 1; i <= totalPages; i++) { %>
+                            <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                                <a class="page-link" href="/admin/product?page=<%= i %>"><%= i %></a>
+                            </li>
+                        <% } %>
+            
+                        <% if (currentPage < totalPages) { %>
+                            <li class="page-item">
+                                <a class="page-link" href="/admin/product?page=<%= currentPage + 1 %>"><i class="material-icons md-chevron_right"></i></a>
+                            </li>
+                        <% } %>
                     </ul>
                 </nav>
             </div>
+            
         </section> <!-- content-main end// -->
         <footer class="main-footer font-xs">
             <div class="row pb-30 pt-15">

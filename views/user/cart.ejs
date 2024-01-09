@@ -28,6 +28,8 @@
     <link rel="stylesheet" href="css/nouislider.min.css">
     <link rel="stylesheet" href="css/bootstrap.css">
     <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-xxx" crossorigin="anonymous" />
+
 </head>
 
 <body>
@@ -79,8 +81,10 @@
 									<li class="nav-item"><a class="nav-link" href="elements.html">Elements</a></li>
 								</ul>
 							</li>
+                            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-xxx" crossorigin="anonymous" />
 							<li class="nav-item"><a class="nav-link" href="/account">Account</a></li>
 							<li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+								<li class="nav-item  "><a class="nav-link" href="/account" ><i class="fas fa-user" ></i><%=userData.name%></a></li>
 
 						</ul>
 						<ul class="nav navbar-nav navbar-right">
@@ -152,7 +156,7 @@
                                       </div>
                                     </td>
                                     <td>
-                                        <h5 id="sprice">$<%= productItem.productId.salePrice %></h5>
+                                        <h5 id="sprice">₹<%= productItem.productId.salePrice %></h5>
                                     </td>
                                     <td>
                                         <div class="product_count">
@@ -166,7 +170,7 @@
                                             </button>
                                         </div>
                                         <td>
-                                            <h5 id="tPrice_<%= productItem.productId._id %>" name="totalPrice1">$<%= productItem.productId.salePrice * productItem.Quantity %></h5>
+                                            <h5 id="tPrice_<%= productItem.productId._id %>" name="totalPrice1">₹<%= productItem.productId.salePrice * productItem.Quantity %></h5>
                                         </td>
                                         <td>
                                             
@@ -193,7 +197,7 @@
                                 <td colspan="2">
                                   <div class="shipping_box">
                                     <ul class="list">
-                                      <li id="fullTotal"><%if(CartData && CartData.product && CartData.product.length > 0){%> $<span id="totalSum"></span>  <%}else{%> <p>Cart is empty</p><%}%> </li>
+                                      <li id="fullTotal"><%if(CartData && CartData.product && CartData.product.length > 0){%> ₹<span id="totalSum"></span>  <%}else{%> <p>Cart is empty</p><%}%> </li>
                                     </ul>
                                   </div>
                                 </td>
@@ -206,7 +210,7 @@
                             const tPriceElements = document.querySelectorAll('[id^="tPrice_"]');
                             let totalSum = 0;
                             tPriceElements.forEach(element => {
-                                const priceText = element.textContent.replace('$', ''); // Remove '$' from text
+                                const priceText = element.textContent.replace('₹', ''); // Remove '$' from text
                                 const price = parseFloat(priceText); // Convert text to number
                                 totalSum += price;
                             });

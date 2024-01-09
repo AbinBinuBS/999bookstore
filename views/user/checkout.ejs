@@ -83,6 +83,7 @@
 							</li>
 							<li class="nav-item"><a class="nav-link" href="/account">Account</a></li>
 							<li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+                            <li class="nav-item "><a class="nav-link" href="/account" ><i class="fas fa-user"></i><%=user.name%></a></li>
 
 						</ul>
 						<ul class="nav navbar-nav navbar-right">
@@ -490,7 +491,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                 <div class="product-details">
                                                     <div class="details">
                                                     <img src="/productimages/<%= productItem.productId.Image[0] %>" width="50px" height="50px" alt="">
-                                                        <span class="price last " id="tPrice_<%= productItem.productId._id %>">$<%= productItem.productId.salePrice * productItem.Quantity %>.00</span>
+                                                        <span class="price last " id="tPrice_<%= productItem.productId._id %>">₹<%= productItem.productId.salePrice * productItem.Quantity %>.00</span>
                                                         <span class="middle quantity  ">x<%= productItem.Quantity %></span>
                                                     </div>
                                                 </div>
@@ -538,12 +539,12 @@ document.addEventListener("DOMContentLoaded", function() {
                             </ul>
                             
                             <script>
-                                // Calculate total sum of all 'tPrice' elements
+                                removeAppliedCoupon()
                                 function calculateTotalSum() {
                                     const tPriceElements = document.querySelectorAll('[id^="tPrice_"]');
                                     let totalSum = 0;
                                     tPriceElements.forEach(element => {
-                                        const priceText = element.textContent.replace('$', ''); // Remove '$' from text
+                                        const priceText = element.textContent.replace('₹', ''); // Remove '$' from text
                                         const price = parseFloat(priceText); // Convert text to number
                                         totalSum += price;
                                     });
@@ -659,7 +660,7 @@ displayRemoveCouponButton();
                 confirmButtonText: 'OK'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    location.reload();
+                    displayRemoveCouponButton();
                 }
             });
 

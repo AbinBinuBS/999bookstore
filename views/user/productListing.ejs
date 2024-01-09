@@ -82,6 +82,7 @@
 							<li class="nav-item"><a class="nav-link" href="/account">Account</a></li>
 							<%if(userData){%>
 								<li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+								<li class="nav-item "><a class="nav-link" href="/account" ><i class="fas fa-user"></i><%=userData.name%></a></li>
 							<%}else{%>
 								<li class="nav-item"><a class="nav-link" href="/">Login</a></li>
 							<%}%>
@@ -188,8 +189,7 @@
 								<% if (categoryData.length > 0) {
 									for (let i = 0; i < categoryData.length; i++) { %>
 										<li class="main-nav-list">
-											<a href="/bookList?id=<%= encodeURIComponent(categoryData[i]._id) %><% if (productData && productData.length > 0) { %>&search=<%= encodeURIComponent(search) %><% } %>"
-												data-category-id="<%= categoryData[i]._id %>" onclick="handleCategoryClick(this)">
+											<a href="/bookList?id=<%= encodeURIComponent(categoryData[i]._id) %>&sortdata=<%= sortdata || '' %><% if (productData && productData.length > 0) { %>&search=<%= encodeURIComponent(search) %><% } %>">
 												<span class="lnr lnr-arrow-right"></span><%= categoryData[i].Name %>
 											</a>
 										</li>
@@ -206,11 +206,9 @@
     const sortCriteria = new URLSearchParams(window.location.search).get('sortdata');
     let updatedUrl = baseUrl;
 
-    if (sortCriteria) {
-        updatedUrl += `?id=${categoryId}&sortdata=${sortCriteria}`; // Include both category ID and sorting criteria
-    } else {
-        updatedUrl += `?id=${categoryId}`; // Only include category ID if no sorting criteria
-    }
+  
+        updatedUrl += `?id=${categoryId}?sortdata=${data}`; // Include both category ID and sorting criteria
+   
 
     window.location.href = updatedUrl;
 }
@@ -292,17 +290,24 @@
 				<div class="filter-bar d-flex flex-wrap align-items-center">
 					<div class="container">
 						<div class="pagination justify-content-end">
-							<a href="/bookList?id=<%= categoryId %>&search=<%= search %>&page=<%= currentPage - 1 %>" class="prev-arrow"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a>
-							
-							<% for (let i = 1; i <= totalpage; i++) { %>
-								<% if (i === currentPage) { %>
-									<a href="/bookList?id=<%= categoryId %>&search=<%= search %>&page=<%= i %>" class="active"><%= i %></a>
-								<% } else { %>
-									<a href="/bookList?id=<%= categoryId %>&search=<%= search %>&page=<%= i %>"><%= i %></a>
-								<% } %>
+							<% if (currentPage > 1) { %>
+								<a href="/bookList?id=<%= categoryId %>&search=<%= search %>&page=<%= currentPage - 1 %>&sortdata=<%= sortdata %>&min=<%= min %>&max=<%= max %>" class="prev-arrow">
+									<i class="fa fa-long-arrow-left" aria-hidden="true"></i>
+								</a>
 							<% } %>
-							
-							<a href="/bookList?id=<%= categoryId %>&search=<%= search %>&page=<%= currentPage + 1 %>" class="next-arrow"><i class="fa fa-long-arrow-right" aria-hidden="true"></i></a>
+						
+							<% for (let i = 1; i <= totalPages; i++) { %>
+								<a href="/bookList?page=<%= i %>&id=<%= categoryId %>&sortdata=<%= sortdata %>&search=<%= search %>&min=<%= min %>&max=<%= max %>" 
+									class="<%= i === currentPage ? 'active' : '' %>">
+									<%= i %>
+								</a>
+							<% } %>
+						
+							<% if (currentPage < totalPages) { %>
+								<a href="/bookList?id=<%= categoryId %>&search=<%= search %>&page=<%= currentPage + 1 %>&sortdata=<%= sortdata %>&min=<%= min %>&max=<%= max %>" class="next-arrow">
+									<i class="fa fa-long-arrow-right" aria-hidden="true"></i>
+								</a>
+							<% } %>
 						</div>
 					</div>
 					
@@ -367,18 +372,26 @@
 				<div class="filter-bar d-flex flex-wrap align-items-center">
 					<div class="container">
 						<div class="pagination justify-content-end">
-							<a href="/bookList?id=<%= categoryId %>&search=<%= search %>&page=<%= currentPage - 1 %>" class="prev-arrow"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a>
-							
-							<% for (let i = 1; i <= totalpage; i++) { %>
-								<% if (i === currentPage) { %>
-									<a href="/bookList?id=<%= categoryId %>&search=<%= search %>&page=<%= i %>" class="active"><%= i %></a>
-								<% } else { %>
-									<a href="/bookList?id=<%= categoryId %>&search=<%= search %>&page=<%= i %>"><%= i %></a>
-								<% } %>
+							<% if (currentPage > 1) { %>
+								<a href="/bookList?id=<%= categoryId %>&search=<%= search %>&page=<%= currentPage - 1 %>&sortdata=<%= sortdata %>&min=<%= min %>&max=<%= max %>" class="prev-arrow">
+									<i class="fa fa-long-arrow-left" aria-hidden="true"></i>
+								</a>
 							<% } %>
-							
-							<a href="/bookList?id=<%= categoryId %>&search=<%= search %>&page=<%= currentPage + 1 %>" class="next-arrow"><i class="fa fa-long-arrow-right" aria-hidden="true"></i></a>
+						
+							<% for (let i = 1; i <= totalPages; i++) { %>
+								<a href="/bookList?page=<%= i %>&id=<%= categoryId %>&sortdata=<%= sortdata %>&search=<%= search %>&min=<%= min %>&max=<%= max %>" 
+									class="<%= i === currentPage ? 'active' : '' %>">
+									<%= i %>
+								</a>
+							<% } %>
+						
+							<% if (currentPage < totalPages) { %>
+								<a href="/bookList?id=<%= categoryId %>&search=<%= search %>&page=<%= currentPage + 1 %>&sortdata=<%= sortdata %>&min=<%= min %>&max=<%= max %>" class="next-arrow">
+									<i class="fa fa-long-arrow-right" aria-hidden="true"></i>
+								</a>
+							<% } %>
 						</div>
+						
 					</div>
 					
 					</div>

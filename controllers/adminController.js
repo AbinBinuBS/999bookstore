@@ -385,81 +385,168 @@ const adminDashboard = async(req,res)=>{
         console.log(error.message)
     }
 }
-const reportDetails = async(req,res)=>{
-    try{
-        const SortedData = req.query.sorting
-        let orderData
-        let startDate = req.query.startDateInput
-        let endDate = req.query.endDateInput
-        if(SortedData){
-            orderData = await Order.find({paymentMethod:SortedData,Status: 'Delivered'})
-            console.log('orderData',orderData)
-        }
-        if(startDate && endDate ){
-            const adjustedEndDate = new Date(endDate);
-            adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
-            adjustedEndDate.setHours(0, 0, 0, 0);
-            
-            orderData = await Order.find({
-                currentData: { $gte: startDate, $lt: adjustedEndDate },
-                Status: 'Delivered'
-            });
-            console.log("i am in true")
-        // }else{
-        //     console.log("i am in else")
-        //     orderData = await Order.find({Status:'Delivered'})
-        // }
-        }
-            console.log("data",orderData)
-            res.render('report',{
-                orderData,
-                startDate,
-                endDate,
-                SortedData
 
-            })
 
-    }catch(error){
-        console.log(error)
-    }
-}
 
-const salesReport = async(req,res)=>{
-    try{
-        let orderData
-        let startDate = req.body.startDateInput
-        let endDate = req.body.endDateInput
-        if(startDate && endDate ){
-            const adjustedEndDate = new Date(endDate);
-            adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
-            adjustedEndDate.setHours(0, 0, 0, 0);
-            
-            orderData = await Order.find({
-                currentData: { $gte: startDate, $lt: adjustedEndDate },
-                Status: 'Delivered'
+const reportDetails = async (req, res) => {
+    try {
+        const SortedData = req.query.sorting;
+        let startDate = req.query.startDateInput;
+        let endDate = req.query.endDateInput;
+        
+        let pipeline = [
+            {
+                $match: {
+                    Status: 'Delivered',
+                },
+            },
+        ];
+        
+        if ((startDate && endDate) || ['paypal', 'wallet', 'Cash on delevery'].includes(SortedData) && SortedData !== 'all dates') {
+            let dateMatch = {};
+        
+            if (startDate && endDate) {
+                const adjustedEndDate = new Date(endDate);
+                adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
+                adjustedEndDate.setHours(0, 0, 0, 0);
+        
+                dateMatch = {
+                    currentData: { $gte: new Date(startDate), $lt: adjustedEndDate },
+                };
+            }
+        
+            let paymentMatch = {};
+        
+            if (SortedData && SortedData !== 'All Dates') {
+                paymentMatch = {
+                    paymentMethod: SortedData,
+                };
+            }
+        
+            pipeline.push({
+                $match: {
+                    $and: [dateMatch, paymentMatch],
+                },
             });
         }
-            console.log("data",orderData)
-            res.render('report',{
-                orderData,
-                startDate,
-                endDate
-            })
+        
+        let orderData = await Order.aggregate(pipeline);
+        
+        let orderCount = orderData.length;
+        
+        let paypalCountPipeline = [
+            {
+                $match: {
+                    paymentMethod: 'paypal', 
+                    _id: { $in: orderData.map((order) => order._id) } 
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    count: { $sum: 1 }
+                }
+            }
+        ];
+        let codCountPipeline = [
+            {
+                $match: {
+                    paymentMethod: 'Cash on delevery', 
+                    _id: { $in: orderData.map((order) => order._id) } 
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    count: { $sum: 1 }
+                }
+            }
+        ];
 
-    }catch(error){
-        console.log(error)
-    }
-}
+        let walletPipeline = [
+            {
+                $match:{
+                    paymentMethod:'wallet',
+                    _id:{$in:orderData.map((order)=>order._id) }
+                }
+            },
+            {
+                $group:{
+                    _id:0,
+                    count:{$sum: 1}
+                }
+            }
+        ]
+        const totalPrice = [
+            {
+                $match:{
+                    _id:{$in:orderData.map((order)=>order._id) }
+                }
+            },
+            {
+                $group:{
+                    _id:0,
+                    totalAmount: { $sum: "$totalAmount" }
+                }
+            }
+        ]
+        let paypalCountResult = await Order.aggregate(paypalCountPipeline);
+        let paypalCount = paypalCountResult.length > 0 ? paypalCountResult[0].count : 0;
+        let codCountResult = await Order.aggregate(codCountPipeline);
+        let codCount = codCountResult.length > 0 ? codCountResult[0].count : 0;
+        let walletCountResult = await Order.aggregate(walletPipeline)
+        let walletCount = walletCountResult.length> 0 ? walletCountResult[0].count : 0;
+        let totalPriceResult = await Order.aggregate(totalPrice)
+        const totalAmount = totalPriceResult.length > 0 ? totalPriceResult[0].totalAmount : 0;
 
-const customerList = async(req,res)=>{
-    try{
-        const userData = await User.find({is_admin:0})
-        console.log(userData)
-        res.render('customerList',{users:userData})
-    }catch(error){
-        console.log(error.message)
+
+        
+
+        
+        
+        res.render('report', {
+            orderData,
+            startDate,
+            endDate,
+            SortedData,
+            orderCount,
+            paypalCount,
+            codCount,
+            walletCount,
+            totalAmount
+        });
+        
+    } catch (error) {
+      console.log(error);
+      res.status(500).send('Internal Server Error');
     }
-}
+  };
+  
+
+
+const customerList = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = 8; 
+        const skip = (page - 1) * limit; 
+
+        const totalUsers = await User.countDocuments({ is_admin: 0 });
+
+        const userData = await User.find({ is_admin: 0 })
+            .skip(skip)
+            .limit(limit);
+
+        res.render('customerList', {
+            users: userData,
+            currentPage: page,
+            totalPages: Math.ceil(totalUsers / limit)
+        });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).send('Error fetching customer list');
+    }
+};
+
 
 const activeList = async(req,res)=>{
     try{
@@ -506,14 +593,31 @@ const customerBlock = async(req,res)=>{
 
 
 
-const productManagement = async(req,res)=>{
-    try{
-        const productData = await Product.find({}).populate('Category')
-        res.render('product',{products:productData})
-    }catch(error){
-        console.log(error.message)
+const productManagement = async (req, res) => {
+    try {
+        const page = req.query.page ? parseInt(req.query.page) : 1;
+        const limit = 8; 
+        const skip = (page - 1) * limit;
+
+        const productData = await Product.find({})
+            .populate('Category')
+            .skip(skip)
+            .limit(limit);
+
+        const totalCount = await Product.countDocuments({});
+
+        const totalPages = Math.ceil(totalCount / limit);
+
+        res.render('product', {
+            products: productData,
+            totalPages,
+            currentPage: page
+        });
+    } catch (error) {
+        console.log(error.message);
     }
-}
+};
+
 
 const loadProduct = async(req,res)=>{
     try{
@@ -526,8 +630,27 @@ const loadProduct = async(req,res)=>{
 
 const addProduct= async(req,res)=>{
     try{
+        if (!req.files || !req.files.every(file => file.mimetype.startsWith('image'))) {
+            const productsData = await Category.find({})
+            return res.render('addProduct', { product:productsData,imgMessage: 'Only images are allowed...!'});
+        }else{
+        let images
+        const tickOption = req.body.tickOption;
         const catgoryData = await Category.findOne({Name:req.body.category})
-        const images = req.files.map(file => file.filename);
+        if (tickOption === "yes") {
+
+            images = [];
+            for (const file of req.files) {
+                const resizedImg = `resized_${file.filename}`;
+                await sharp(file.path)
+                    .resize({ width: 965, height: 1440 })
+                    .toFile(`public/productimages/${resizedImg}`);
+
+                images.push(resizedImg);
+            }
+        }else{
+             images = req.files.map(file => file.filename);
+        }
         const duplicateData = await Product.findOne({ productName: { $regex: new RegExp(`^${req.body.pname}$`, 'i') } });
         if(duplicateData)
         {
@@ -553,6 +676,7 @@ const addProduct= async(req,res)=>{
         const productData = await Data.save()
         res.redirect('/admin/product')
         }
+    }
 
     }catch(error){
         console.log(error.message)
@@ -576,54 +700,93 @@ const loadEditProduct = async(req,res)=>{
 
 
 
+
 const editProduct = async (req, res) => {
     try {
         const id = req.query.id;
+        if (!req.files || !req.files.every(file => file.mimetype.startsWith('image'))) {
+            const productData = await Product.findById({_id:id}).populate('Category')
+            const categoryData = await Category.find({}) 
+            if(productData)
+            {
+                res.render('edit-product',{products:productData,categoryData:categoryData,imgMessage: 'Only images are allowed...!'})
+            }
+        }else{
+        let resizedImages = [];
+        const tickOption = req.body.tickOption;
+        let existingImages = [];
+        let updatedImages;
+
         const categoryData = await Category.findOne({ Name: req.body.category });
         const existingProduct = await Product.findById(id);
-        const existingImages = existingProduct.Image || [];
-        const newImages = req.files.map(file => file.filename);
-        const removedImages = req.body.removedImages || [];
-        const updatedImages = existingImages
-            .concat(newImages) 
-            .filter(img => !removedImages.includes(img));
+        if (existingProduct && existingProduct.Image) {
+            existingImages = existingProduct.Image || [];
+        }
 
-            const data = req.body.pname
+        if (tickOption === "yes") {
+            const newImages = req.files.map(file => file.filename);
+            const removedImages = req.body.removedImages || [];
+            updatedImages = existingImages
+                .concat(newImages)
+                .filter(img => !removedImages.includes(img));
+        
+            for (const file of updatedImages) {
+                console.log("in for loop");
+                if (!existingImages.includes(file)) {
+                    const resizedImg = `resized_${file}`;
+                    await sharp(`public/productimages/${file}`)
+                        .resize({ width: 965, height: 1440 })
+                        .toFile(`public/productimages/${resizedImg}`);
+        
+                    resizedImages.push(resizedImg);
+                } else {
+                    resizedImages.push(file); 
+                }
+            }
+        } else {
+            console.log('in else block')
+            const newImages = req.files.map(file => file.filename);
+            const removedImages = req.body.removedImages || [];
+            resizedImages = existingImages
+                .concat(newImages)
+                .filter(img => !removedImages.includes(img));
+        }
+
+        const data = req.body.pname;
         const duplicateDataCount = await Product.countDocuments({
             productName: { $regex: new RegExp(`^${data}$`, 'i') },
             _id: { $ne: id }
         });
-        if(duplicateDataCount>0){
-            const productData = await Product.findById({_id:id}).populate('Category')
-            const categoryData = await Category.find({}) 
-            res.render('edit-product',{products:productData,categoryData:categoryData,message:"Already exist...!"})
-        }else{
-        const updatedData = {
-            productName: req.body.pname,
-            Author: req.body.author,
-            Category: categoryData._id,
-            Description: req.body.description,
-            productPrice: req.body.pprice,
-            salePrice: req.body.sprice,
-            Quantity: req.body.quantity,
-            Image: updatedImages,
-            Publisher: req.body.publisher,
-            Country: req.body.country,
-            aboutAuthor: req.body.aabout,
-            bookWeight: req.body.bweight,
-            Pages: req.body.pages
-        };
-         
-        const productData = await Product.findByIdAndUpdate(id, updatedData, { new: true });
-        res.redirect('/admin/product/' );
+
+        if (duplicateDataCount > 0) {
+            const productData = await Product.findById({ _id: id }).populate('Category');
+            const categoryData = await Category.find({});
+            res.render('edit-product', { products: productData, categoryData: categoryData, message: "Already exist...!" });
+        } else {
+            const updatedData = {
+                productName: req.body.pname,
+                Author: req.body.author,
+                Category: categoryData._id,
+                Description: req.body.description,
+                productPrice: req.body.pprice,
+                salePrice: req.body.sprice,
+                Quantity: req.body.quantity,
+                Image: resizedImages,
+                Publisher: req.body.publisher,
+                Country: req.body.country,
+                aboutAuthor: req.body.aabout,
+                bookWeight: req.body.bweight,
+                Pages: req.body.pages
+            };
+
+            const productData = await Product.findByIdAndUpdate(id, updatedData, { new: true });
+            res.redirect('/admin/product/');
+        }
     }
     } catch (error) {
         console.log(error.message);
-       
     }
 };
-
-
 
 const deleteProduct = async(req,res)=>{
     try{
@@ -640,12 +803,19 @@ const deleteProduct = async(req,res)=>{
 
 const categoryManagement = async(req,res)=>{
     try{
-        const productData = await Category.find({})
-        if(productData)
-        {
-            res.render('category',{categories:productData})
-        }
-
+        const page = req.query.page ? parseInt(req.query.page) : 1;
+        const limit = 6;
+        const skip = (page - 1) * limit;
+        const categoryData = await Category.find({})
+        .skip(skip)
+        .limit(limit);
+        const totalCount = await Category.countDocuments({});
+        const totalPages = Math.ceil(totalCount / limit);
+            res.render('category',{
+                categories:categoryData,
+                totalPages,
+                currentPage: page
+            });
     }catch(error)
     {
         console.log(error.message)
@@ -656,6 +826,39 @@ const categoryManagement = async(req,res)=>{
 
 const addCategory = async (req, res) => {
     try {
+        let images;
+        let tickOption = req.body.tickOption;
+        const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif']; 
+        if (tickOption && tickOption === 'yes') {
+            if (allowedMimeTypes.includes(req.file.mimetype)) {
+            const resizedImg = `resized_${req.file.filename}`;
+            await sharp(req.file.path)
+                .resize({ width: 1456, height: 768 })
+                .toFile(`public/productimages/${resizedImg}`);
+
+            images = resizedImg;
+            } else {
+                const productData = await Category.find({})
+                    if (productData) {
+                        return res.render('category',{categories:productData, message: 'Plese Upload An Image' });
+                    } else {
+                        return res.redirect('/admin/category');
+                    }
+                }
+        } else {
+            if (allowedMimeTypes.includes(req.file.mimetype)) {
+            images = req.file.filename;
+        } else {
+                const productData = await Category.find({})
+                if (productData) {
+                        return res.render('category',{categories:productData, message: 'Plese Upload An Image' });
+                } else {
+                        return res.redirect('/admin/category');
+                }
+            }
+        }
+
+        
         const trimmedName = req.body.name.trim();
         const nameWithoutSpaces = trimmedName.replace(/\s+/g, '\\s*');
         const regexPattern = `^${nameWithoutSpaces}$`;
@@ -670,7 +873,7 @@ const addCategory = async (req, res) => {
         } else {
             const Data = new Category({
                 Name: req.body.name,
-                Image: req.file.filename
+                Image: images
             });
             const CategoryData = await Data.save();
             res.redirect('/admin/category');
@@ -692,37 +895,70 @@ const loadEditCategory =async(req,res)=>{
 }
 
 
-const editCategory = async(req,res)=>{
-    try{
-        const id=req.query.id
-        const data = req.body.name
+const editCategory = async (req, res) => {
+    try {
+        const id = req.query.id;
+        const data = req.body.name;
         const existingCategory = await Category.findById(id);
-        const existingImage = existingCategory.Image || 'defaultImage.jpg'; 
+        const existingImage = existingCategory.Image || 'defaultImage.jpg';
         let newImage = '';
+        if (req.fileValidationError) {
+            return res.status(400).json({ error: req.fileValidationError.message });
+          }
         if (req.file && req.file.filename) {
-        newImage = req.file.filename; 
+            const tickOption = req.body.tickOption;
+            const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif']; // Allowed image MIME types
+
+            if (tickOption && tickOption === 'yes') {
+                if (allowedMimeTypes.includes(req.file.mimetype)) {
+                    const resizedImg = `resized_${req.file.filename}`;
+                    await sharp(req.file.path)
+                        .resize({ width: 1456, height: 768 })
+                        .toFile(`public/productimages/${resizedImg}`);
+
+                    newImage = resizedImg;
+                } else {
+                    const categoryData =await Category.findById({_id:id})
+                    if (categoryData) {
+                        return res.render('edit-category', { categories: categoryData, message: 'Plese Upload An Image' });
+                    } else {
+                        return res.redirect('/admin/category');
+                    }
+                }
+            } else {
+                if (allowedMimeTypes.includes(req.file.mimetype)) {
+                    newImage = req.file.filename;
+                } else {
+                    const categoryData =await Category.findById({_id:id})
+                    if (categoryData) {
+                        return res.render('edit-category', { categories: categoryData, message: 'Plese Upload An Image' });
+                    } else {
+                        return res.redirect('/admin/category');
+                    }
+                }
+            }
         } else {
-        newImage = existingImage; 
+            newImage = existingImage;
         }
+
         const imagesToUse = newImage.length > 0 ? newImage : existingImage;
         const duplicateDataCount = await Category.countDocuments({
             Name: { $regex: new RegExp(`^${data}$`, 'i') },
-            _id: { $ne: id } 
+            _id: { $ne: id }
         });
-        console.log(duplicateDataCount)
-        if(duplicateDataCount>0)
-        {
-            const categoryData =await Category.findById({_id:id})
-            res.render('edit-category',{categories:categoryData,message:"Already exist"})
-        }else{
-            const CategoryData = await Category.findByIdAndUpdate({_id:id},{$set:{Name:req.body.name,Image:imagesToUse}})
-        res.redirect('/admin/category')
 
+        if (duplicateDataCount > 0) {
+            const categoryData = await Category.findById({ _id: id });
+            return res.render('edit-category', { categories: categoryData, message: 'Already exist' });
+        } else {
+            const CategoryData = await Category.findByIdAndUpdate({ _id: id }, { $set: { Name: req.body.name, Image: imagesToUse } });
+            return res.redirect('/admin/category');
         }
-    }catch(error){
-        console.log(error.message)
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).send('Internal Server Error');
     }
-}
+};
 
 const deleteCategory = async(req,res)=>{
     try{
@@ -767,14 +1003,30 @@ const categoryBlock = async(req,res)=>{
 
 // =================================order details===================================
 
-const orderManagement = async(req,res)=>{
-    try{
-        const orderData =  await Order.find({}).populate('userId').sort({currentData:-1})
-        res.render('order',{orderData:orderData})
-    }catch(error){
-        console.log(error.message)
+const orderManagement = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1; 
+        const limit = 8;
+        const skip = (page - 1) * limit; 
+
+        const totalOrders = await Order.countDocuments({}); 
+
+        const orderData = await Order.find({})
+            .populate('userId')
+            .sort({ currentData: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        res.render('order', {
+            orderData: orderData,
+            currentPage: page,
+            totalPages: Math.ceil(totalOrders / limit)
+        });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).send('Error fetching orders');
     }
-}
+};
 
 const orderStatus = async (req, res) => {
     try {
@@ -802,7 +1054,6 @@ const orderStatus = async (req, res) => {
     }
 };
 
-// module.exports = { orderStatus };
 
 const viewsorders =  async(req,res)=>{
     try{
@@ -854,20 +1105,36 @@ if (orderData) {
 
 // =============================Coupon======================================
 
-const couponManagement = async (req,res)=>{
-    try{
+const couponManagement = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1; 
+        const limit = 10;
+        const skip = (page - 1) * limit; 
+
         const currentDate = new Date();
+        const totalCoupons = await Coupon.countDocuments(); 
+
         const couponData = await Coupon.find()
+            .skip(skip)
+            .limit(limit);
+
         for (const coupon of couponData) {
             if (coupon.expiryDate < currentDate) {
                 await Coupon.findByIdAndUpdate(coupon._id, { is_active: 0 });
             }
         }
-        res.render('coupon',{couponData:couponData})
-    }catch(error){
-        console.log(error.message)
+
+        res.render('coupon', {
+            couponData: couponData,
+            currentPage: page,
+            totalPages: Math.ceil(totalCoupons / limit)
+        });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).send('Error fetching coupon data');
     }
-}
+};
+
 
 const addCoupons = async (req,res)=>{
     try{
@@ -1009,6 +1276,9 @@ const loadAddBanner = async (req,res)=>{
 
 const addBanner = async (req,res)=>{
     try{
+        if (!req.files || !req.files.every(file => file.mimetype.startsWith('image'))) {
+            return res.render('add-banner', { imgMessage: 'Only images are allowed...!'});
+        }else{
         let images
         const tickOption = req.body.tickOption
         if(tickOption=="yes"){
@@ -1034,6 +1304,7 @@ const addBanner = async (req,res)=>{
         })
         await Data.save()
         res.redirect('/admin/banner')
+    }
     }catch(error){
         console.log(error.message)
     }
@@ -1077,11 +1348,16 @@ const loadEditBanner =  async (req,res)=>{
 }
 const editBanner = async (req, res) => {
     try {
-        let resizedImages = [];        
-        const id = req.body.id;
-        console.log(id);
-        const tickOption = req.body.tickOption
-        let existingImages = [];
+        
+        if (!req.files || !req.files.every(file => file.mimetype.startsWith('image'))) {
+            const bannerData = await Banner.findById({_id:id})
+            return res.render('editBanner', { imgMessage: 'Only images are allowed...!',bannerData:bannerData });
+        }else{
+            let resizedImages = [];        
+            const id = req.body.id;
+            console.log(id);
+            const tickOption = req.body.tickOption
+            let existingImages = [];
         if(tickOption=="yes"){
             let existingImages = [];
             const existingBanner = await Banner.findById(id);
@@ -1126,15 +1402,6 @@ const editBanner = async (req, res) => {
             .filter(img => !removedImages.includes(img));
         console.log("updatedImages",resizedImages);       
     }
-        // const duplicateDataCount = await Product.countDocuments({
-        //     productName: { $regex: new RegExp(`^${data}$`, 'i') },
-        //     _id: { $ne: id }
-        // });
-        // if(duplicateDataCount>0){
-        //     const bannerData = await Banner.findById({_id:id})
-        //     const categoryData = await Category.find({}) 
-        //     res.render('edit-product',{products:productData,categoryData:categoryData,message:"Already exist...!"})
-        // }else{
         const updatedData = {
             Name: req.body.name,
             Text: req.body.description,
@@ -1146,8 +1413,8 @@ const editBanner = async (req, res) => {
         
         const bannerData = await Banner.findByIdAndUpdate(id, updatedData, { new: true });
         res.redirect('/admin/banner' );
-    // }
         console.log("body:",req.body)
+    }
     }catch(error){
         console.log(error.message)
     }
@@ -1164,7 +1431,6 @@ module.exports = {
     adminLogout,
     adminDashboard,
     reportDetails,
-    salesReport,
     customerList,
     activeList,
     uactiveList,

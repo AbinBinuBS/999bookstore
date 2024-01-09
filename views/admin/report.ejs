@@ -85,7 +85,7 @@
                     </a>
                     <div class="submenu">
                         <a href="/admin/banner">Banner List</a>
-                        <a href="/admin/addbanner">Add Banner </a>
+                        <!-- <a href="/admin/addbanner">Add Banner </a> -->
                     </div>
                 </li>
                 <li class="menu-item">
@@ -182,18 +182,78 @@
         <section class="content-main">
             <div class="content-header">
                 <div>
-                    <h2 class="content-title card-title">Products List</h2>
-                    <p>Lorem ipsum dolor sit amet.</p>
+                    <h2 class="content-title card-title">Report</h2>
                 </div>
                 <div>
-                    <a href="#" class="btn btn-light rounded font-md">Export</a>
-                    <a href="#" class="btn btn-light rounded  font-md">Import</a>
-                    <a href="#" class="btn btn-primary btn-sm rounded">Create new</a>
+                    <a href="/admin/report" class="btn btn-light rounded font-md">All Dates</a>
+                    <a href="#" onclick="downloadFile()" class="btn btn-primary btn-sm rounded"><i class="icon material-icons md-print"></i>Print Report</a>
+                </div>
+                <script>
+                    function downloadFile() {
+         			window.print();
+                    }
+                </script>
+            </div>
+            <div class="row">
+                <div class="col-lg-2 mb-4">
+                    <div class="card card-body">
+                        <article class="icontext">
+                            <div class="text">
+                                <h6 class="mb-1 card-title"></h6>
+                                <span><%=orderCount%></span>
+                                <span class="text-sm">Total Number of Orders</span>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="col-lg-2 mb-4">
+                    <div class="card card-body">
+                        <article class="icontext">
+                            <div class="text">
+                                <h6 class="mb-1 card-title"></h6>
+                                <span><%=paypalCount%></span>
+                                <span class="text-sm">Online Payment</span>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="col-lg-2 mb-4">
+                    <div class="card card-body">
+                        <article class="icontext">
+                            <div class="text">
+                                <h6 class="mb-1 card-title"></h6>
+                                <span><%=codCount%></span>
+                                <span class="text-sm">Cash On Delivery</span>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="col-lg-2 mb-4">
+                    <div class="card card-body">
+                        <article class="icontext">
+                            <div class="text">
+                                <h6 class="mb-1 card-title"></h6>
+                                <span><%=walletCount%></span>
+                                <span class="text-sm">Wallet</span>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="col-lg-2 mb-4">
+                    <div class="card card-body">
+                        <article class="icontext">
+                            <div class="text">
+                                <h6 class="mb-1 card-title"></h6>
+                                <span>₹<%=totalAmount%></span>
+                                <span class="text-sm">Total Amount</span>
+                            </div>
+                        </article>
+                    </div>
                 </div>
             </div>
+           
             <div class="card mb-4">
                 <header class="card-header">
-                    
                     <form action="/admin/report" id="DateForm" method="GET">
                     <div class="row align-items-center">
                         <div class="col-md-3 col-12 me-auto mb-md-0 mb-3">
@@ -204,29 +264,24 @@
                                     <option>Cash on delevery</option>
                                     <option>paypal</option>
                                 <% } else if (SortedData === 'wallet') { %>
-                                    <option>All Dates</option>
-                                    <option selected>wallet</option>
+                                    <option selected><%=SortedData%></option>
                                     <option>Cash on delevery</option>
                                     <option>paypal</option>
-                                <% } else if (SortedData === 'Cash on delivery') { %>
-                                    <option>All Dates</option>
-                                    <option>wallet</option>
-                                    <option selected>Cash on delivery</option>
+                                <% } else if (SortedData === 'Cash on delevery') { %>
+                                    <option selected><%=SortedData%></option>
+                                    <option >wallet</option>
                                     <option>paypal</option>
                                 <% } else if (SortedData === 'paypal') { %>
-                                    <option>All Dates</option>
+                                    <option selected><%=SortedData%></option>
                                     <option>wallet</option>
                                     <option>Cash on delevery</option>
-                                    <option selected>paypal</option>
                                 <% } else { %>
                                     <option selected>All Dates</option>
                                     <option>wallet</option>
                                     <option>Cash on delevery</option>
                                     <option>paypal</option>
                                 <% } %>
-                                
                             </select>
-                            
                         </div>
                         <div class="col-md-2 col-6">
                             <button  type="submit" id="submitButton1" class="btn btn-primary"  >Submit</button>
@@ -299,13 +354,10 @@
                                 <div class="row align-items-center">
                                     <div class="col col-check flex-grow-0">
                                     </div>
-                                    <div class="col-lg-4 col-sm-4 col-8 flex-grow-1 col-name">
-                                        <a class="itemside" href="#">
-                                            <div class="info">
-                                                <h4 class="mb-0">Id</h4>
-                                            </div>
-                                        </a>
+                                    <div class="col-lg-2 col-sm-2 col-4 col-price">
+                                        <h4 class="mb-0">Id</h4>
                                     </div>
+                                    <div class="col-lg-2 col-sm-2 col-4 col-price"> <h4>Total Amount</h4> </div>
                                     <div class="col-lg-2 col-sm-2 col-4 col-price"> <h4>Payment Method </h4> </div>
                                     <div class="col-lg-2 col-sm-2 col-4 col-status">
                                         <h4>Order Status </h4>
@@ -323,13 +375,10 @@
                         <div class="row align-items-center">
                             <div class="col col-check flex-grow-0">
                             </div>
-                            <div class="col-lg-4 col-sm-4 col-8 flex-grow-1 col-name">
-                                <a class="itemside" href="#">
-                                    <div class="info">
-                                        <h6 class="mb-0"># <%= orderData[i].orderId %></h6>
-                                    </div>
-                                </a>
+                            <div class="col-lg-2 col-sm-2 col-4 col-price">
+                                <h6 class="mb-0"># <%= orderData[i].orderId %></h6>
                             </div>
+                            <div class="col-lg-2 col-sm-2 col-4 col-price"> <span><%= orderData[i].totalAmount %></span> </div>
                             <div class="col-lg-2 col-sm-2 col-4 col-price"> <span><%= orderData[i].paymentMethod %></span> </div>
                             <div class="col-lg-2 col-sm-2 col-4 col-status">
                                 <span class="badge rounded-pill alert-success"><%= orderData[i].Status %></span>
@@ -338,7 +387,7 @@
                                 <span><%= orderData[i].currentData.toLocaleDateString() %></span>
                             </div>
                             <div class="col-lg-2 col-sm-2 col-4 col-action text-end">
-                                <a href="#" class="btn btn-sm font-sm rounded btn-brand">
+                                <a href="/admin/vieworders?id=<%= orderData[i]._id %>" class="btn btn-sm font-sm rounded btn-brand">
                                     </i> View
                                 </a>
                             </div>
@@ -363,18 +412,6 @@
                     </style>
 
                 </div> 
-            </div>
-            <div class="pagination-area mt-30 mb-50">
-                <nav aria-label="Page navigation example">
-                    <ul class="pagination justify-content-start">
-                        <li class="page-item active"><a class="page-link" href="#">01</a></li>
-                        <li class="page-item"><a class="page-link" href="#">02</a></li>
-                        <li class="page-item"><a class="page-link" href="#">03</a></li>
-                        <li class="page-item"><a class="page-link dot" href="#">...</a></li>
-                        <li class="page-item"><a class="page-link" href="#">16</a></li>
-                        <li class="page-item"><a class="page-link" href="#"><i class="material-icons md-chevron_right"></i></a></li>
-                    </ul>
-                </nav>
             </div>
         </section> <!-- content-main end// -->
         <footer class="main-footer font-xs">

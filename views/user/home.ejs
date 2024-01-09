@@ -47,9 +47,11 @@
 									<li class="nav-item"><a class="nav-link" href="elements.html">Elements</a></li>
 								</ul>
 							</li>
+							<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-xxx" crossorigin="anonymous" />
 							<li class="nav-item"><a class="nav-link" href="/account">Account</a></li>
 							<% if (user && user._id) { %>
 								<li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+								<li class="nav-item "><a class="nav-link" href="/account" ><i class="fas fa-user"></i><%=user.name%></a></li>
 							<% } else { %>
 								<li class="nav-item"><a class="nav-link" href="/">Login</a></li>
 							<% } %>
@@ -228,8 +230,14 @@
 							<div class="col-lg-3 col-md-6 ">
 								<div class="single-product">
 									<a href="/product?id=<%= newProduct[i]._id %>">
-										<img class="img-fluid" src="/productimages/<%= Array.isArray(newProduct[i].Image) && newProduct[i].Image.length > 0 ? newProduct[i].Image[0] : 'defaultImage.jpg' %>"  alt="">
+										<img class="custom-img-fluid" src="/productimages/<%= Array.isArray(newProduct[i].Image) && newProduct[i].Image.length > 0 ? newProduct[i].Image[0] : 'defaultImage.jpg' %>" alt="">
 									</a>
+									<style>
+										.custom-img-fluid {
+										max-width: 200px; 
+										max-height: 200px; 
+										}
+									</style>
 									<div class="product-details " >
 										<h6><%=newProduct[i].productName%></h6>
 										<div>
@@ -293,8 +301,14 @@
 							<div class="col-lg-3 col-md-6">
 								<div class="single-product">
 									<a href="/product?id=<%= bestSeller[i]._id %>">
-										<img class="img-fluid" src="/productimages/<%= Array.isArray(bestSeller[i].Image) && bestSeller[i].Image.length > 0 ? bestSeller[i].Image[0] : 'defaultImage.jpg' %>"  alt="">
-										</a>									
+										<img class="img-fluid image-fluid" src="/productimages/<%= Array.isArray(bestSeller[i].Image) && bestSeller[i].Image.length > 0 ? bestSeller[i].Image[0] : 'defaultImage.jpg' %>"  alt="">
+										</a>
+										<style>
+											.image-fluid {
+											max-width: 200px; 
+											max-height: 200px; 
+											}
+										</style>									
 										<div class="product-details">
 										<h6><%=bestSeller[i].productName%></h6>
 										<div>
@@ -369,8 +383,8 @@
 							<div class="product-details">
 
 								<div class="price">
-									<h6>$<%=bestSeller[i].salePrice%></h6>
-									<h6 class="l-through">$<%=bestSeller[i].productPrice%></h6>
+									<h6>₹<%=bestSeller[i].salePrice%></h6>
+									<h6 class="l-through">₹<%=bestSeller[i].productPrice%></h6>
 								</div>
 								<h4><%=bestSeller[i].productName%></h4>
 								<div class="add-bag d-flex align-items-center justify-content-center">
@@ -441,8 +455,14 @@
 						<div class="col-lg-3 col-md-3 col-sm-6 mb-20" style="margin-bottom: 20px;">
 						  <div class="single-related-product d-flex">
 							<a href="/product?id=<%= dicountProduct[i]._id %>">
-							  <img src="/productimages/<%= Array.isArray(dicountProduct[i].Image) && dicountProduct[i].Image.length > 0 ? dicountProduct[i].Image[0] : 'defaultImage.jpg' %>" alt="" style="width: 100%; height: auto; max-height: 200px;">
+							  <img class="imageproduct" src="/productimages/<%= Array.isArray(dicountProduct[i].Image) && dicountProduct[i].Image.length > 0 ? dicountProduct[i].Image[0] : 'defaultImage.jpg' %>" alt="" >
 							</a>
+							<style>
+								.imageproduct {
+								max-width: 100px; 
+								max-height: 100px; 
+								}
+							</style>
 							<div class="desc">
 							  <a href="#" class="title"><%= dicountProduct[i].productName %></a>
 							  <div class="price">

@@ -85,7 +85,7 @@
                     </a>
                     <div class="submenu">
                         <a href="/admin/banner">Banner List</a>
-                        <a href="/admin/addbanner">Add Banner </a>
+                        <!-- <a href="/admin/addbanner">Add Banner </a> -->
                     </div>
                 </li>
                 <li class="menu-item">
@@ -204,21 +204,21 @@
                                     <div class="col-lg-4">
                                         <div class="mb-4">
                                             <label class="form-label">Regular price</label>
-                                            <input placeholder="$" type="text" name="pprice" class="form-control">
+                                            <input placeholder="₹" type="text" name="pprice" class="form-control">
                                             <span id="ppriceError" class="text-danger"></span>
                                         </div>
                                     </div>
                                     <div class="col-lg-4">
                                         <div class="mb-4">
                                             <label class="form-label">Sale Price</label>
-                                            <input placeholder="$" type="text" name="sprice" class="form-control">
+                                            <input placeholder="₹" type="text" name="sprice" class="form-control">
                                             <span id="spriceError" class="text-danger"></span>
                                         </div>
                                     </div>
                                     <div class="col-lg-4">
                                         <div class="mb-4">
                                             <label class="form-label">Quantity</label>
-                                            <input placeholder="$" type="text" name="quantity" class="form-control">
+                                            <input placeholder="₹" type="text" name="quantity" class="form-control">
                                             <span id="quantityError" class="text-danger"></span>
                                         </div>
                                     </div>
@@ -278,6 +278,13 @@
                                     <img src="/assets1/imgs/theme/upload.svg" alt="">
                                     <input class="form-control" name="image" accept="image/*" type="file" multiple required>
                                 </div>
+                                <div>
+                                    <input type="checkbox" value="yes" id="tickOption" name="tickOption">
+                                    <label for="tickOption">Crop Image</label>
+                                </div>
+                                <% if(typeof imgMessage !== 'undefined') { %>
+                                    <p style="color:red"><%= imgMessage %></p>
+                                <% } %>
                             </div>
                         </div>
                         <div class="card mb-4">
@@ -396,7 +403,10 @@
                 return false;
             }
 
-            if (sprice>pprice) {
+            const spriceValue = parseFloat(sprice);
+            const ppriceValue = parseFloat(pprice); 
+
+            if (spriceValue > ppriceValue) {
                 document.getElementById('spriceError').textContent = 'Sale Price should be less than product price.';
                 return false;
             }

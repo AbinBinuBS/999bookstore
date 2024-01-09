@@ -84,7 +84,7 @@
                     </a>
                     <div class="submenu">
                         <a href="/admin/banner">Banner List</a>
-                        <a href="/admin/addbanner">Add Banner </a>
+                        <!-- <a href="/admin/addbanner">Add Banner </a> -->
                     </div>
                 </li>
                 <li class="menu-item">
@@ -198,6 +198,10 @@
                                     <input id="imageInput" accept="image/*" type="file" name="image" class="form-control bg-primary text-white">
                                     <div id="imageError" class="invalid-feedback" style="display: none;">Please choose an image.</div>
                                 </div>
+                                <div>
+                                    <input type="checkbox" id="tickOption" name="tickOption" value="yes">
+                                    <label for="tickOption">Crop</label>
+                                </div>
                                 <div class="d-grid">
                                     <button type="submit" class="btn btn-primary">Create category</button>
                                 </div>
@@ -226,7 +230,7 @@
                                         <tr>
                                             <td class="text-center">
                                             </td>
-                                            <td><%= [i+1] %></td>
+                                            <td><%= (parseInt(currentPage)-1)*6+i+1 %></td>
                                             <td>
                                                  <img src="/productimages/<%= categories[i].Image %>" class="avatar avatar-sm me-3 border-radius-lg" width="50px" height="50px" alt="user1">
                                             </td>
@@ -257,6 +261,7 @@
                                                             <button type="button" onclick="deleteCat('<%= categories[i]._id %>')" class=" dropdown-item  bg-white text-danger">Remove</button>
                                                             <input type="hidden" id="delcategoryID" value="<%= categories[i]._id %>">
                                                     </form>
+                                                    
                                                     </div>
                                                     <script>
                                                         function deleteCat(Data){
@@ -302,6 +307,7 @@
                                                     </script>
                                                 </div> <!-- dropdown //end -->
                                             </td>
+                                            
                                         </tr>
                                         <% } %>
                                         <% } else { %>
@@ -309,25 +315,48 @@
                                             <td colspan="6">User Not Found</td>
                                             </tr>
                                         <% } %> 
+                                        
                                     </tbody>
+                                    
                                 </table>
+                            </div>
+                            <div>
+                            <ul class="pagination justify-content-end">
+                                <% if (currentPage > 1) { %>
+                                    <li class="page-item">
+                                        <a class="page-link" href="/admin/category?page=<%= currentPage - 1 %>"><i class="material-icons md-chevron_left"></i></a>
+                                    </li>
+                                <% } %>
+                    
+                                <% for (let i = 1; i <= totalPages; i++) { %>
+                                    <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                                        <a class="page-link" href="/admin/category?page=<%= i %>"><%= i %></a>
+                                    </li>
+                                <% } %>
+                    
+                                <% if (currentPage < totalPages) { %>
+                                    <li class="page-item">
+                                        <a class="page-link" href="/admin/category?page=<%= currentPage + 1 %>"><i class="material-icons md-chevron_right"></i></a>
+                                    </li>
+                                <% } %>
+                            </ul>
                             </div>
                         </div> <!-- .col// -->
                     </div> <!-- .row // -->
-                </div> <!-- card body .// -->
-            </div> <!-- card .// -->
+                </div>
+                 
+                
+            </div> 
         </section> <!-- content-main end// -->
         <footer class="main-footer font-xs">
             <div class="row pb-30 pt-15">
                 <div class="col-sm-6">
-                    <script>
-                    document.write(new Date().getFullYear())
-                    </script> ©, Evara - HTML Ecommerce Template .
-                </div>
+                   
                 <div class="col-sm-6">
                     <div class="text-sm-end">
                         All rights reserved
                     </div>
+                    
                 </div>
             </div>
         </footer>

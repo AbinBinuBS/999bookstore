@@ -85,7 +85,7 @@
                     </a>
                     <div class="submenu">
                         <a href="/admin/banner">Banner List</a>
-                        <a href="/admin/addbanner">Add Banner </a>
+                        <!-- <a href="/admin/addbanner">Add Banner </a> -->
                     </div>
                 </li>
                 <li class="menu-item">
@@ -295,6 +295,13 @@
                                     <div class="input-upload position-relative mb-3" style="max-width: 300px;">
                                         <div id="selectedImagesContainer" style="position: relative;"></div>
                                     </div>
+                                    <div>
+                                        <input type="checkbox" value="yes" id="tickOption" name="tickOption">
+                                        <label for="tickOption">Crop Image</label>
+                                    </div>
+                                    <% if(typeof imgMessage !== 'undefined') { %>
+                                        <p style="color:red"><%= imgMessage %></p>
+                                    <% } %>
                                 </div>
                                 
                              
@@ -421,7 +428,10 @@
                 return false;
             }
 
-            if (sprice>pprice) {
+            const spriceValue = parseFloat(sprice);
+            const ppriceValue = parseFloat(pprice); 
+
+            if (spriceValue > ppriceValue) {
                 document.getElementById('spriceError').textContent = 'Sale Price should be less than product price.';
                 return false;
             }

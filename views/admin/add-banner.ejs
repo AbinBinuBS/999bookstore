@@ -85,7 +85,7 @@
                     </a>
                     <div class="submenu">
                         <a href="/admin/banner">Banner List</a>
-                        <a href="/admin/addbanner" class="active">Add Banner </a>
+                        <!-- <a href="/admin/addbanner" class="active">Add Banner </a> -->
                     </div>
                 </li>
                 <li class="menu-item">
@@ -203,7 +203,7 @@
                                 </div>
                                 <div>
                                     <input type="checkbox" value="yes" id="tickOption" name="tickOption">
-                                    <label for="tickOption">Sharp</label>
+                                    <label for="tickOption">Crop Image</label>
                                 </div>
                                 <div class="mb-4">
                                     <label class="form-label">Text</label>
@@ -223,6 +223,9 @@
                                     <img src="/assets1/imgs/theme/upload.svg" alt="">
                                     <input class="form-control" name="image" accept="image/*" type="file" multiple required>
                                 </div>
+                                <% if(typeof imgMessage !== 'undefined') { %>
+                                    <p style="color:red"><%= imgMessage %></p>
+                                <% } %>
                             </div>
                         </div>
                     </div>

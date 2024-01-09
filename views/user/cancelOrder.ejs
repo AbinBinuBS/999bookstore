@@ -79,8 +79,10 @@
 									<li class="nav-item"><a class="nav-link" href="elements.html">Elements</a></li>
 								</ul>
 							</li>
+							<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-xxx" crossorigin="anonymous" />
 							<li class="nav-item active"><a class="nav-link" href="/account">Account</a></li>
 							<li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+							<li class="nav-item "><a class="nav-link" href="/account" ><i class="fas fa-user"></i><%=userData.name%></a></li>
 
 						</ul>
 						<ul class="nav navbar-nav navbar-right">
@@ -136,10 +138,10 @@
                         <h4>Order Info</h4>
 						<%if(orderData){%>
                         <ul class="list">
-                            <li><a href="#"><span>Order number</span>: #<%= orderData.orderId %></a></li>
-                            <li><a href="#"><span>Date</span> : <%= new Date(orderData.currentData).toLocaleString() %></a></li>
-                            <li><a href="#"><span>Total</span> : ₹ <%= orderData.totalAmount %>.00</a></li>
-                            <li><a href="#"><span>Payment method</span> : <%= orderData.paymentMethod %></a></li>
+                            <li><span>Order number</span>: #<%= orderData.orderId %></li>
+                            <li><span>Date</span> : <%= new Date(orderData.currentData).toLocaleString() %></li>
+                            <li><span>Total</span> : ₹ <%= orderData.totalAmount %>.00</li>
+                            <li><span>Payment method</span> : <%= orderData.paymentMethod %></li>
                         </ul>
 						<%}else{%>
 							<%}%>
@@ -150,10 +152,10 @@
                     <div class="details_item">
                         <h4>Shipping Address</h4>
                         <ul class="list">
-                            <li><a href="#"><span>City</span> : <%= orderData.address[0].City %></a></li>
-                            <li><a href="#"><span>District</span> : <%= orderData.address[0].District %></a></li>
-                            <li><a href="#"><span>State</span> :  <%= orderData.address[0].State %></a></li>
-                            <li><a href="#"><span>Postcode </span> :  <%= orderData.address[0].Pincode %></a></li>
+                            <li><span>City</span> : <%= orderData.address[0].City %></li>
+                            <li><span>District</span> : <%= orderData.address[0].District %></li>
+                            <li><span>State</span> :  <%= orderData.address[0].State %></li>
+                            <li><span>Postcode </span> :  <%= orderData.address[0].Pincode %></li>
                         </ul>
                     </div>
                 </div>
@@ -181,12 +183,11 @@
                                             <h5>x <%= item.quantity %></h5>
                                         </td>
                                         <td>
-                                            <p>$<%= item.productId.salePrice * item.quantity%></p>
+                                            <p id="pt">₹<%= item.productId.salePrice * item.quantity%>.00</p>
                                         </td>
                                     </tr>
                             <%  });
                             } else { %>
-                                <!-- Handling for no items or if orderData.items is not an array -->
                             <% } %>
                             
 							
@@ -198,10 +199,27 @@
 									<h5></h5>
 								</td>
 								<td>
-									<p>₹ <%= orderData.totalAmount %></p>
+									<p id="ptamount">₹ </p>
 								</td>
 							</tr>
 							<tr>
+								<script>
+									const elements = document.querySelectorAll("[id*='pt']");
+								  
+									let total = 0;
+								  
+									elements.forEach((element) => {
+									  const value = parseFloat(element.textContent.replace(/[^\d.-]/g, ''));
+									  if (!isNaN(value)) {
+										total += value;
+									  }
+									});
+									const ptAmountElement = document.getElementById('ptamount');
+									if (ptAmountElement) {
+									  ptAmountElement.textContent = `₹ ${total.toFixed(2)}`; 
+									}
+								  </script>
+								  
 								<td>
 									<h4>Shipping</h4>
 								</td>

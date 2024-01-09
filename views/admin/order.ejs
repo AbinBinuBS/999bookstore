@@ -85,7 +85,7 @@
                     </a>
                     <div class="submenu">
                         <a href="/admin/banner">Banner List</a>
-                        <a href="/admin/addbanner">Add Banner </a>
+                        <!-- <a href="/admin/addbanner">Add Banner </a> -->
                     </div>
                 </li>
                 <li class="menu-item">
@@ -252,7 +252,7 @@
                                         <tr>
                                             <td> # <%= orderData[i].orderId %></td>
                                             <td><b style="color: green;"><%= orderData[i].paymentMethod %></b></td>                                            
-                                            <td>$<%= orderData[i].totalAmount %></td>
+                                            <td>₹<%= orderData[i].totalAmount %></td>
                                             <td><span class="badge rounded-pill alert-danger"><%= orderData[i].paymentStatus %></span></td>
                                             <td><span id="status"  class="badge rounded-pill alert-success"><%= orderData[i].Status %></span></td>
                                             <td><%= orderData[i].currentData.toLocaleDateString() %></td>
@@ -375,15 +375,25 @@ changeButtons.forEach(button => {
             <div class="pagination-area mt-15 mb-50">
                 <nav aria-label="Page navigation example">
                     <ul class="pagination justify-content-start">
-                        <li class="page-item active"><a class="page-link" href="#">01</a></li>
-                        <li class="page-item"><a class="page-link" href="#">02</a></li>
-                        <li class="page-item"><a class="page-link" href="#">03</a></li>
+                        <% for(let i = 1; i <= totalPages; i++) { %>
+                            <% if (i === currentPage) { %>
+                                <li class="page-item active"><a class="page-link" href="#"><%= i %></a></li>
+                            <% } else { %>
+                                <li class="page-item"><a class="page-link" href="/admin/order?page=<%= i %>"><%= i %></a></li>
+                            <% } %>
+                        <% } %>
                         <li class="page-item"><a class="page-link dot" href="#">...</a></li>
-                        <li class="page-item"><a class="page-link" href="#">16</a></li>
-                        <li class="page-item"><a class="page-link" href="#"><i class="material-icons md-chevron_right"></i></a></li>
+                        <li class="page-item"><a class="page-link" href="/admin/order?page=<%= totalPages %>"><%= totalPages %></a></li>
+                        <% if (currentPage === totalPages) { %>
+                            <li class="page-item"><a class="page-link" href="/admin/order?page=1"><i class="material-icons md-chevron_right"></i></a></li>
+                        <% } else { %>
+                            <li class="page-item"><a class="page-link" href="/admin/order?page=<%= currentPage + 1 %>"><i class="material-icons md-chevron_right"></i></a></li>
+                        <% } %>
                     </ul>
                 </nav>
+                
             </div>
+            
         </section> <!-- content-main end// -->
         <footer class="main-footer font-xs">
             <div class="row pb-30 pt-15">

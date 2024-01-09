@@ -31,7 +31,6 @@ user_route.get('/logout',auth.isLogin,userController.userLogout)
 user_route.get('/register',auth.isLogout,userController.registerLogin)
 user_route.post('/register',auth.isLogout,userController.insertUser)
 
-// user_route.get('/getOtp',userController.getOtp)
 user_route.post('/verifyOtp',auth.isLogout,userController.verifyOtp)
 user_route.get('/forgotpassword',auth.isLogout,userController.Loadforgotpassword)
 user_route.post('/forgotpassword',auth.isLogout,userController.forgetPassword)
@@ -42,7 +41,6 @@ user_route.post('/resendOtp',auth.isLogout,userController.ForgetPasswordresendOt
 user_route.get('/home',userController.homePage)
 user_route.get('/product',userController.productPage)
 
-// user_route.get('/productList',userController.productListing)
 user_route.get('/bookList',userController.showAllBooks)
 
 user_route.get('/cart',auth.isLogin,userController.cartManagement)

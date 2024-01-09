@@ -128,6 +128,7 @@
 							</li>
 							<li class="nav-item"><a class="nav-link" href="/account">Account</a></li>
 							<li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+                            <li class="nav-item "><a class="nav-link" href="/account" ><i class="fas fa-user"></i><%=userData.name%></a></li>
 
 						</ul>
 						<ul class="nav navbar-nav navbar-right">
@@ -236,7 +237,7 @@
                                                                         <td>#<%= orderData.orderId %></td>
                                                                         <td><%= new Date(orderData.currentData).toLocaleString() %></td>
                                                                         <td><%= orderData.Status %></td>
-                                                                        <td>$<%= orderData.totalAmount %></td>
+                                                                        <td>₹<%= orderData.totalAmount %></td>
                                                                         <td><a href="/orderstatus?id=<%= orderData._id %>" class="btn-small d-block">View</a></td>
                                                                     </tr>
                                                             <%  });

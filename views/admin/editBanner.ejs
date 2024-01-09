@@ -85,7 +85,7 @@
                     </a>
                     <div class="submenu">
                         <a href="/admin/banner">Banner List</a>
-                        <a href="/admin/addbanner">Add Banner </a>
+                        <!-- <a href="/admin/addbanner">Add Banner </a> -->
                     </div>
                 </li>
                 <li class="menu-item">
@@ -191,7 +191,7 @@
                             <div class="card-body">
                                 <div class="mb-4">
                                     <label for="product_name" class="form-label">Banner Name</label>
-                                    <input required type="text" placeholder="Type here" name="name" value="<%= bannerData.Name %>" class="form-control" id="bannername" >
+                                    <input  type="text" placeholder="Type here" name="name" value="<%= bannerData.Name %>" class="form-control" id="bannername" readonly>
                                     <span id="bannerError" class="text-danger"></span>
                                 </div>
                                 <% if(typeof message !== 'undefined') { %>
@@ -215,7 +215,7 @@
                                 </div>
                                 <div>
                                     <input type="checkbox" value="yes" id="tickOption" name="tickOption">
-                                    <label for="tickOption">Sharp</label>
+                                    <label for="tickOption">Crop Images</label>
                                 </div>
                                 <div class="mb-4">
                                     <label class="form-label">Text</label>
@@ -238,6 +238,7 @@
                                               <img src="/bannerimages/<%= bannerData.Image[i] %>" alt="" class="img-fluid rounded" style="width: 100%;">
                                               <button type="button" class="btn btn-danger btn-sm position-absolute bottom-0 start-50 translate-middle-x" style="transform: translateX(-50%);" onclick="handleRemove('<%= bannerData.Image[i] %>')">Remove</button>
                                             </div>
+                                           
                                           </div>
                                         <% } %>
                                       <% } %>                                      
@@ -246,6 +247,9 @@
                                     <div class="input-upload position-relative mb-3" style="max-width: 300px;">
                                         <div id="selectedImagesContainer" style="position: relative;"></div>
                                     </div>
+                                    <% if(typeof imgMessage !== 'undefined') { %>
+                                        <p style="color:red"><%= imgMessage %></p>
+                                    <% } %>
                                 </div>
                             </form>
                         </div>

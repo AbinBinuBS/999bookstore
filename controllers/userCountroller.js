@@ -345,6 +345,7 @@ const forgotPasswordChech = async(req,res)=>{
 
 const homePage = async (req, res) => {
     try {
+       
         const bannerHome1 = await Banner.findOne({Name:"Banner for home page 1",is_active:1})
         const bannerHome2 = await Banner.findOne({Name:"Banner for home page 2",is_active:1})
         const activeCategories = await Category.find({ is_active: '1' }).limit(4);
@@ -453,136 +454,67 @@ const productPage = async(req,res)=>{
 // =======================Book listing=============================
 
 
-// const productListing = async (req,res)=>{
-    //     try{
-    //         id=req.query.id
-            
-    //         const catData = await Category.findOne({_id:id,is_active:1})
-    //         const catId = catData._id
-    //         const categoryData = await Category.find({is_active:1})
-    //         const productData = await Product.find({Category:catId}).limit(9)
-    //         const userData = await User.findById(req.session.user_id)
-    //         if(userData){
-    //             if(userData.is_varified==1){
-    //                 res.render('productListing',{userData,productData:productData,categoryData:categoryData})
-    //             }else{
-    //                 delete req.session.user_id;
-    //                 req.session.save()
-    //                 res.redirect('/')
-    //             }
-    //         }else{
-    //             res.render('productListing',{userData,productData:productData,categoryData:categoryData})
-    //         }
-    
-    //     }catch(error){
-    //         console.log(error.message)
-    //     }
-    // }
-    
 
-
-
-
-// const BookDisplay = async (req, res) => {
-//     try {
-        // const userData = await User.findById(req.session.user_id);
-
-        // const max = parseFloat(req.query.max);
-        // const min = parseFloat(req.query.min);
-        // const sortBy = req.query.sortBy || 'createdAt'; 
-        // let filter = {};
-
-        // if (max && min) {
-        //     filter = { salePrice: { $gte: min, $lte: max } };
-        // }
-
-//         const activeCategories = await Category.find({ is_active: '1' });
-//         const activeCategoryIds = activeCategories.map(category => category._id);
-
-//         let bookData = await Product.find({ Category: { $in: activeCategoryIds }, ...filter })
-//             .populate({
-//                 path: 'Category',
-//                 match: { is_active: '1' },
-//                 select: '-is_active'
-//             })
-//             .sort({ [sortBy]: 1 }); 
-
-//         const categoryData = await Category.find({ is_active: 1 });
-
-//         if (userData) {
-//             if (userData.is_varified == 1) {
-//                 res.render('productListing', { userData, productData: bookData, categoryData });
-//             } else {
-//                 delete req.session.user_id;
-//                 req.session.save();
-//                 res.redirect('/');
-//             }
-//         } else {
-//             res.render('productListing', { userData, productData: bookData, categoryData });
-//         }
-//     } catch (error) {
-//         console.log(error.message);
-//         res.status(500).send('Internal Server Error');
-//     }
-// };
 
 const showAllBooks = async (req, res) => {
     try {
         let sortQuery = {};
 
-switch (req.query.sortdata) {
-    case 'a-z':
-        sortQuery = { productName: 1 };
-        break;
-    case 'z-a':
-        sortQuery = { productName: -1 };
-        break;
-    case 'h-l':
-        sortQuery = { salePrice: -1 };
-        break;
-    case 'l-h':
-        sortQuery = { salePrice: 1 };
-        break;
-}                  
-        console.log("hai",req.query.sortdata)
+        switch (req.query.sortdata) {
+            case 'a-z':
+                sortQuery = { productName: 1 };
+                break;
+            case 'z-a':
+                sortQuery = { productName: -1 };
+                break;
+            case 'h-l':
+                sortQuery = { salePrice: -1 };
+                break;
+            case 'l-h':
+                sortQuery = { salePrice: 1 };
+                break;
+            default:
+                sortQuery = {}; 
+                break;
+        }
+
         let page = req.query.page ? parseInt(req.query.page) : 1;
         const limit = 9;
         const categoryId = req.query.id;
         const search = req.query.search || '';
         const max = parseFloat(req.query.max);
         const min = parseFloat(req.query.min);
-        
+
         let filter = {};
 
-        // Min and max price range filters
         if (max && min) {
             filter.salePrice = { $gte: min, $lte: max };
         }
 
-        // Category filter
         if (categoryId) {
             filter.Category = categoryId;
         }
 
-        // Search filter (if needed)
         if (search) {
             filter.productName = { $regex: '.*' + search + '.*', $options: 'i' };
         }
-        // Add any additional search criteria or modify the above based on your needs
 
         let productData = [];
         let count = 0;
 
-        // Fetch products based on the combined filter
         productData = await Product.find(filter)
-            .sort(sortQuery) 
+            .sort(sortQuery)
             .skip((page - 1) * limit)
+            .limit(limit)
             .exec();
 
         count = await Product.countDocuments(filter);
 
         const categoryData = await Category.find({ is_active: '1' });
         const userData = await User.findById(req.session.user_id);
+
+        const totalPages = Math.ceil(count / limit);
+        const currentPage = page;
 
         res.render('productListing', {
             categoryData,
@@ -592,13 +524,17 @@ switch (req.query.sortdata) {
             min,
             max,
             categoryId,
-            totalpage: Math.ceil(count / limit),
-            currentPage: page
+            sortdata: req.query.sortdata,
+            totalPages,
+            currentPage
         });
     } catch (error) {
         console.log(error.message);
+        res.status(500).send('Internal Server Error');
     }
 };
+
+module.exports = { showAllBooks };
 
 
 // ===============================end of blk listing===============================
@@ -878,10 +814,11 @@ const checkoutOrder = async(req,res)=>{
     try{
         console.log("i am at checkout")
         id=req.session.user_id
+        const user = await User.findById({_id:id })
         const userData = await User.findById(id, { address: 1, _id: 0 })
         const CartData = await Cart.findOne({ userId: req.session.user_id }).populate('product.productId');
         const couponData = await Coupon.find({is_active:1})
-        res.render('checkout',{userData:userData,cartData:CartData,couponData:couponData})
+        res.render('checkout',{userData:userData,cartData:CartData,couponData:couponData,user:user})
     }catch(error){
         console.log(error.message)
     }
@@ -1297,7 +1234,7 @@ const accountManagment = async(req,res)=>{
         id=req.session.user_id
         const userData = await User.findById({_id:id})
         const orderData = await Order.find({userId:id}).sort({currentData:-1})
-
+        
         res.render('Account',{userData:userData,orderData:orderData})
     }catch(error){
         console.log(error.message)
